@@ -1,0 +1,42 @@
+[package]
+name = "xore-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "XORE CLI - Command-line interface for search and data processing"
+
+[[bin]]
+name = "xore"
+path = "src/main.rs"
+
+[dependencies]
+# 内部依赖
+xore-core = { path = "../xore-core" }
+xore-search = { path = "../xore-search" }
+xore-process = { path = "../xore-process" }
+xore-ai = { path = "../xore-ai" }
+
+# CLI框架
+clap.workspace = true
+colored.workspace = true
+indicatif.workspace = true
+
+# 错误处理
+anyhow.workspace = true
+thiserror.workspace = true
+
+# 日志
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+# 序列化
+serde.workspace = true
+serde_json.workspace = true
+
+# 并发
+tokio.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true

@@ -1,0 +1,8 @@
+# Rustfmt配置文件
+
+max_width = 100
+tab_spaces = 4
+use_small_heuristics = "Max"
+imports_granularity = "Crate"
+edition = "2021"
+newline_style = "Unix"

@@ -1,0 +1,91 @@
+[workspace]
+members = [
+    "xore-cli",
+    "xore-core",
+    "xore-search",
+    "xore-process",
+    "xore-ai",
+]
+resolver = "2"
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+authors = ["XORE Team"]
+license = "MIT"
+repository = "https://github.com/yourusername/xore"
+homepage = "https://github.com/yourusername/xore"
+documentation = "https://docs.rs/xore"
+keywords = ["search", "data-processing", "semantic", "cli"]
+categories = ["command-line-utilities", "text-processing", "data-structures"]
+
+[workspace.dependencies]
+# CLI
+clap = { version = "4.5", features = ["derive", "cargo"] }
+colored = "3.0"
+indicatif = "0.18"
+
+# 搜索引擎
+tantivy = "0.22"
+fst = "0.4"
+
+# 数据处理
+polars = { version = "0.45", features = ["lazy", "parquet", "json", "sql"] }
+
+# AI/ML
+ort = { version = "2.0.0-rc.11", features = ["download-binaries"] }
+tokenizers = { version = "0.15", default-features = false, features = ["onig"] }
+
+# 并发
+tokio = { version = "1.35", features = ["full"] }
+rayon = "1.8"
+crossbeam = "0.8"
+num_cpus = "1.16"
+
+# 文件监控
+notify = "6.1"
+walkdir = "2.4"
+ignore = "0.4"
+
+# 存储
+sled = "0.34"
+memmap2 = "0.9"
+
+# 可观测性
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow = "1.0"
+thiserror = "1.0"
+
+# 性能
+mimalloc = "0.1"
+
+# SQL解析
+sqlparser = "0.39"
+
+# 序列化
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# 日期时间
+chrono = "0.4.38"
+
+# 测试工具
+tempfile = "3.8"
+criterion = { version = "0.5", features = ["html_reports"] }
+proptest = "1.4"
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.bench]
+inherits = "release"
