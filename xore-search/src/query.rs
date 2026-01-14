@@ -1,6 +1,6 @@
 //! 查询引擎
 
-use xore_core::{Result, types::SearchResult};
+use xore_core::{types::SearchResult, Result};
 
 /// 搜索器
 pub struct Searcher {

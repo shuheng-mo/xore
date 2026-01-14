@@ -1,7 +1,7 @@
 //! 索引构建器
 
-use xore_core::Result;
 use std::path::Path;
+use xore_core::Result;
 
 /// 索引构建器
 pub struct IndexBuilder {

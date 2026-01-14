@@ -7,12 +7,8 @@ pub mod tokenizer;
 
 pub use embedding::EmbeddingModel;
 
-use xore_core::Result;
-
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_placeholder() {
         assert_eq!(2 + 2, 4);

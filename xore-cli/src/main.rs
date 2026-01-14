@@ -1,7 +1,7 @@
 //! XORE CLI - 命令行入口
 
 use clap::{Parser, Subcommand};
-use tracing_subscriber;
+use xore_core::LogConfig;
 
 mod commands;
 mod ui;
@@ -68,27 +68,19 @@ enum Commands {
 }
 
 fn main() -> anyhow::Result<()> {
-    // 初始化日志
-    tracing_subscriber::fmt::init();
-
     // 解析命令行参数
     let cli = Cli::parse();
 
+    // 初始化日志系统
+    let log_config = LogConfig::from_args(cli.verbose, cli.quiet, cli.no_color);
+    log_config.init()?;
+
     // 执行子命令
     match cli.command {
-        Commands::Find {
-            query,
-            path,
-            r#type,
-            semantic,
-        } => {
+        Commands::Find { query, path, r#type, semantic } => {
             find::execute(&query, &path, r#type.as_deref(), semantic)?;
         }
-        Commands::Process {
-            file,
-            query,
-            quality_check,
-        } => {
+        Commands::Process { file, query, quality_check } => {
             process::execute(&file, query.as_deref(), quality_check)?;
         }
     }

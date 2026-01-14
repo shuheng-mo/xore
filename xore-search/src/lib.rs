@@ -9,12 +9,8 @@ pub mod watcher;
 pub use indexer::IndexBuilder;
 pub use query::Searcher;
 
-use xore_core::Result;
-
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_placeholder() {
         assert_eq!(2 + 2, 4);

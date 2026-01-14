@@ -1,6 +1,6 @@
 //! 数据质量分析
 
-use xore_core::{Result, types::DataQualityReport};
+use xore_core::{types::DataQualityReport, Result};
 
 /// 数据质量分析器
 pub struct DataProfiler {

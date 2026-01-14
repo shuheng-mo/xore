@@ -24,11 +24,7 @@ pub enum XoreError {
     ConfigError(String),
 
     #[error("超出资源限制: {resource} (当前: {current}, 最大: {max})")]
-    ResourceLimit {
-        resource: String,
-        current: usize,
-        max: usize,
-    },
+    ResourceLimit { resource: String, current: usize, max: usize },
 
     #[error("AI模型错误: {0}")]
     AiError(String),

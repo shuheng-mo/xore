@@ -65,11 +65,7 @@ impl Default for Config {
                 auto_rebuild_days: 30,
                 max_index_size_gb: 10,
             },
-            process: ProcessConfig {
-                lazy_execution: true,
-                chunk_size_mb: 64,
-                cache_size_mb: 512,
-            },
+            process: ProcessConfig { lazy_execution: true, chunk_size_mb: 64, cache_size_mb: 512 },
             ai: AiConfig {
                 model_path: PathBuf::from("~/.xore/models/minilm-l6-v2.onnx"),
                 enable_semantic: true,
@@ -81,11 +77,7 @@ impl Default for Config {
                 max_query_time_ms: 5000,
                 max_results: 1000,
             },
-            ui: UiConfig {
-                theme: "dark".to_string(),
-                progress_bar: true,
-                color_output: true,
-            },
+            ui: UiConfig { theme: "dark".to_string(), progress_bar: true, color_output: true },
             exclude: ExcludeConfig {
                 patterns: vec![
                     ".git".to_string(),
@@ -102,8 +94,8 @@ impl Config {
     /// 从文件加载配置
     pub fn load(path: &std::path::Path) -> crate::Result<Self> {
         let content = std::fs::read_to_string(path)?;
-        let config: Config = toml::from_str(&content)
-            .map_err(|e| crate::XoreError::ConfigError(e.to_string()))?;
+        let config: Config =
+            toml::from_str(&content).map_err(|e| crate::XoreError::ConfigError(e.to_string()))?;
         Ok(config)
     }
 
