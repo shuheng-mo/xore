@@ -38,5 +38,9 @@ serde_json.workspace = true
 # 并发
 tokio.workspace = true
 
+# 平台相关
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
 [dev-dependencies]
 tempfile.workspace = true

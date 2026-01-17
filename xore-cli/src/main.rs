@@ -36,16 +36,44 @@ enum Commands {
     /// 查找文件（搜索功能）
     #[command(alias = "f")]
     Find {
-        /// 查询字符串
-        query: String,
+        /// 查询字符串（可选，如不提供则只扫描文件）
+        query: Option<String>,
 
         /// 搜索路径
         #[arg(long, default_value = ".")]
         path: String,
 
-        /// 文件类型
-        #[arg(long)]
+        /// 文件类型过滤（csv, json, log, code, text, parquet, 或逗号分隔的扩展名）
+        #[arg(long, short = 't')]
         r#type: Option<String>,
+
+        /// 文件大小过滤（例如：">1MB", "<500KB", "1MB-10MB"）
+        #[arg(long, short = 's')]
+        size: Option<String>,
+
+        /// 修改时间过滤（例如："-7d" 过去7天, "+30d" 超过30天, "2024-01-01"）
+        #[arg(long, short = 'm')]
+        mtime: Option<String>,
+
+        /// 最大遍历深度
+        #[arg(long, short = 'd')]
+        max_depth: Option<usize>,
+
+        /// 包含隐藏文件
+        #[arg(long)]
+        hidden: bool,
+
+        /// 不遵守 .gitignore 规则
+        #[arg(long)]
+        no_ignore: bool,
+
+        /// 跟随符号链接
+        #[arg(long, short = 'L')]
+        follow_links: bool,
+
+        /// 并行线程数（默认自动检测）
+        #[arg(long, short = 'j')]
+        threads: Option<usize>,
 
         /// 启用语义搜索
         #[arg(long)]
@@ -77,8 +105,32 @@ fn main() -> anyhow::Result<()> {
 
     // 执行子命令
     match cli.command {
-        Commands::Find { query, path, r#type, semantic } => {
-            find::execute(&query, &path, r#type.as_deref(), semantic)?;
+        Commands::Find {
+            query,
+            path,
+            r#type,
+            size,
+            mtime,
+            max_depth,
+            hidden,
+            no_ignore,
+            follow_links,
+            threads,
+            semantic,
+        } => {
+            find::execute(find::FindArgs {
+                query,
+                path,
+                file_type: r#type,
+                size,
+                mtime,
+                max_depth,
+                hidden,
+                no_ignore,
+                follow_links,
+                threads,
+                semantic,
+            })?;
         }
         Commands::Process { file, query, quality_check } => {
             process::execute(&file, query.as_deref(), quality_check)?;

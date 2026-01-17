@@ -4403,6 +4403,7 @@ dependencies = [
  "clap",
  "colored",
  "indicatif",
+ "libc",
  "serde",
  "serde_json",
  "tempfile",
@@ -4458,12 +4459,14 @@ name = "xore-search"
 version = "1.0.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "criterion",
  "crossbeam",
  "fst",
  "ignore",
  "memmap2",
  "notify",
+ "num_cpus",
  "proptest",
  "rayon",
  "serde",
