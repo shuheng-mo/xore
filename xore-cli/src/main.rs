@@ -6,7 +6,7 @@ use xore_core::LogConfig;
 mod commands;
 mod ui;
 
-use commands::{find, process};
+use commands::{benchmark, find, process};
 
 /// XORE - 搜索和数据处理一体化工具
 #[derive(Parser)]
@@ -93,6 +93,30 @@ enum Commands {
         #[arg(long)]
         quality_check: bool,
     },
+
+    /// 性能基准测试
+    #[command(alias = "bench")]
+    Benchmark {
+        /// 测试套件 (all, scan, search, process, io)
+        #[arg(long, short = 's', default_value = "all")]
+        suite: benchmark::BenchmarkSuite,
+
+        /// 输出格式 (text, json, csv)
+        #[arg(long, short = 'o', default_value = "text")]
+        output: benchmark::OutputFormat,
+
+        /// 迭代次数
+        #[arg(long, short = 'n', default_value = "3")]
+        iterations: usize,
+
+        /// 测试数据路径
+        #[arg(long)]
+        data_path: Option<String>,
+
+        /// 预热次数
+        #[arg(long, default_value = "1")]
+        warmup: usize,
+    },
 }
 
 fn main() -> anyhow::Result<()> {
@@ -134,6 +158,21 @@ fn main() -> anyhow::Result<()> {
         }
         Commands::Process { file, query, quality_check } => {
             process::execute(&file, query.as_deref(), quality_check)?;
+        }
+        Commands::Benchmark {
+            suite,
+            output,
+            iterations,
+            data_path,
+            warmup,
+        } => {
+            benchmark::execute(benchmark::BenchmarkArgs {
+                suite,
+                output,
+                iterations,
+                data_path,
+                warmup,
+            })?;
         }
     }
 
