@@ -39,6 +39,7 @@ target
 flamegraph.svg
 perf.data
 perf.data.old
+data/
 
 # 日志
 *.log
