@@ -1,6 +1,11 @@
 <div align="center">
 
-<h1><img src="assets/xore.png" alt="XORE Icon" height="48" style="vertical-align: middle;"> XORE</h1>
+<table align="center" border="0" cellspacing="0" cellpadding="0">
+<tr>
+<td><img src="assets/xore.png" alt="XORE Icon" height="64"></td>
+<td><h1>XORE</h1></td>
+</tr>
+</table>
 
 > **Explore the Abyss, Extract the Core**
 
