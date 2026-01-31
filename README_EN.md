@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/xore.png" alt="XORE Icon" width="64" height="64" style="vertical-align: middle;"> **XORE**
+<img src="assets/xore.png" alt="XORE Icon" width="80" style="vertical-align: middle; display: inline;"> <span style="font-size: 48px; font-weight: bold; vertical-align: middle; margin-left: 12px;">**XORE**</span>
 
 > **Explore the Abyss, Extract the Core**
 
