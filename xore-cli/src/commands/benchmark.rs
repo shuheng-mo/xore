@@ -25,6 +25,8 @@ pub enum BenchmarkSuite {
     Process,
     /// I/O 吞吐量测试
     Io,
+    /// 内存分配性能测试
+    Alloc,
 }
 
 /// 输出格式
@@ -69,17 +71,20 @@ enum BenchmarkStatus {
     Error(String),
 }
 
+/// 获取当前使用的分配器名称
+fn allocator_name() -> &'static str {
+    if cfg!(feature = "mimalloc") {
+        "mimalloc"
+    } else {
+        "system"
+    }
+}
+
 /// 执行基准测试命令
 pub fn execute(args: BenchmarkArgs) -> Result<()> {
-    let path = args
-        .data_path
-        .clone()
-        .unwrap_or_else(|| ".".to_string());
+    let path = args.data_path.clone().unwrap_or_else(|| ".".to_string());
 
-    println!(
-        "{}\n",
-        "XORE 性能基准测试".cyan().bold()
-    );
+    println!("{}\n", format!("XORE 性能基准测试 (分配器: {})", allocator_name()).cyan().bold());
     println!(
         "测试路径: {}, 迭代次数: {}, 预热: {}\n",
         path.yellow(),
@@ -93,6 +98,7 @@ pub fn execute(args: BenchmarkArgs) -> Result<()> {
         BenchmarkSuite::All => {
             results.extend(run_scan_benchmark(&path, args.iterations, args.warmup)?);
             results.extend(run_io_benchmark(&path, args.iterations, args.warmup)?);
+            results.extend(run_alloc_benchmark(args.iterations)?);
             results.extend(run_search_benchmark()?);
             results.extend(run_process_benchmark()?);
         }
@@ -107,6 +113,9 @@ pub fn execute(args: BenchmarkArgs) -> Result<()> {
         }
         BenchmarkSuite::Io => {
             results.extend(run_io_benchmark(&path, args.iterations, args.warmup)?);
+        }
+        BenchmarkSuite::Alloc => {
+            results.extend(run_alloc_benchmark(args.iterations)?);
         }
     }
 
@@ -186,11 +195,7 @@ fn run_scan_benchmark(
 }
 
 /// 运行 I/O 基准测试
-fn run_io_benchmark(
-    path: &str,
-    iterations: usize,
-    warmup: usize,
-) -> Result<Vec<BenchmarkResult>> {
+fn run_io_benchmark(path: &str, iterations: usize, warmup: usize) -> Result<Vec<BenchmarkResult>> {
     let mut results = Vec::new();
 
     // 找一个测试文件
@@ -199,10 +204,8 @@ fn run_io_benchmark(
     let (files, _) = scanner.scan()?;
 
     // 找一个适合测试的文件（1KB - 100MB）
-    let test_file = files
-        .iter()
-        .find(|f| f.size > 1024 && f.size < 100 * 1024 * 1024)
-        .map(|f| f.path.clone());
+    let test_file =
+        files.iter().find(|f| f.size > 1024 && f.size < 100 * 1024 * 1024).map(|f| f.path.clone());
 
     if let Some(file_path) = test_file {
         let file_size = std::fs::metadata(&file_path)?.len();
@@ -299,6 +302,82 @@ fn run_process_benchmark() -> Result<Vec<BenchmarkResult>> {
     }])
 }
 
+/// 运行内存分配基准测试
+fn run_alloc_benchmark(iterations: usize) -> Result<Vec<BenchmarkResult>> {
+    let mut results = Vec::new();
+
+    // Vec<String> 分配测试
+    let mut durations = Vec::with_capacity(iterations);
+    for _ in 0..iterations {
+        let start = Instant::now();
+        let mut v: Vec<String> = Vec::with_capacity(100_000);
+        for i in 0..100_000 {
+            v.push(format!("path/to/file_{}.txt", i));
+        }
+        drop(v);
+        durations.push(start.elapsed());
+    }
+
+    let avg = average_duration(&durations);
+    let allocs_per_sec =
+        if avg.as_secs_f64() > 0.0 { (100_000.0 / avg.as_secs_f64()) as u64 } else { 0 };
+
+    results.push(BenchmarkResult {
+        name: "Vec<String> 分配 (100K 元素)".to_string(),
+        duration_ms: avg.as_secs_f64() * 1000.0,
+        throughput: Some(format!("{} allocs/s", format_number(allocs_per_sec))),
+        status: BenchmarkStatus::Success,
+    });
+
+    // HashMap 分配测试
+    let mut durations = Vec::with_capacity(iterations);
+    for _ in 0..iterations {
+        let start = Instant::now();
+        let mut map: std::collections::HashMap<String, usize> =
+            std::collections::HashMap::with_capacity(50_000);
+        for i in 0..50_000 {
+            map.insert(format!("key_{}", i), i);
+        }
+        drop(map);
+        durations.push(start.elapsed());
+    }
+
+    let avg = average_duration(&durations);
+    let ops_per_sec =
+        if avg.as_secs_f64() > 0.0 { (50_000.0 / avg.as_secs_f64()) as u64 } else { 0 };
+
+    results.push(BenchmarkResult {
+        name: "HashMap<String, usize> (50K 条目)".to_string(),
+        duration_ms: avg.as_secs_f64() * 1000.0,
+        throughput: Some(format!("{} ops/s", format_number(ops_per_sec))),
+        status: BenchmarkStatus::Success,
+    });
+
+    // 小字符串频繁分配释放测试
+    let mut durations = Vec::with_capacity(iterations);
+    for _ in 0..iterations {
+        let start = Instant::now();
+        for i in 0..50_000 {
+            let s = format!("temp_string_{}", i);
+            std::hint::black_box(&s);
+        }
+        durations.push(start.elapsed());
+    }
+
+    let avg = average_duration(&durations);
+    let allocs_per_sec =
+        if avg.as_secs_f64() > 0.0 { (50_000.0 / avg.as_secs_f64()) as u64 } else { 0 };
+
+    results.push(BenchmarkResult {
+        name: "小字符串分配/释放 (50K 次)".to_string(),
+        duration_ms: avg.as_secs_f64() * 1000.0,
+        throughput: Some(format!("{} allocs/s", format_number(allocs_per_sec))),
+        status: BenchmarkStatus::Success,
+    });
+
+    Ok(results)
+}
+
 /// 计算平均耗时
 fn average_duration(durations: &[Duration]) -> Duration {
     if durations.is_empty() {
@@ -366,29 +445,13 @@ fn print_text_results(results: &[BenchmarkResult]) {
                     .map(|t| format!(" ({})", t.cyan()))
                     .unwrap_or_default();
 
-                println!(
-                    "{} {}: {}{}",
-                    icon_colored,
-                    result.name,
-                    duration.yellow(),
-                    throughput
-                );
+                println!("{} {}: {}{}", icon_colored, result.name, duration.yellow(), throughput);
             }
             BenchmarkStatus::Pending => {
-                println!(
-                    "{} {}: {}",
-                    icon_colored,
-                    result.name,
-                    "待实现".dimmed()
-                );
+                println!("{} {}: {}", icon_colored, result.name, "待实现".dimmed());
             }
             BenchmarkStatus::Error(msg) => {
-                println!(
-                    "{} {}: {}",
-                    icon_colored,
-                    result.name,
-                    msg.red()
-                );
+                println!("{} {}: {}", icon_colored, result.name, msg.red());
             }
         }
     }

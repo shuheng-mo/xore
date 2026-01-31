@@ -6,7 +6,9 @@ use anyhow::{Context, Result};
 use colored::*;
 use std::path::Path;
 
-use crate::ui::{Alignment, Column, ColorScheme, Table, TableStyle, ICON_SUCCESS, ICON_TIP, ICON_WARNING};
+use crate::ui::{
+    Alignment, ColorScheme, Column, Table, TableStyle, ICON_SUCCESS, ICON_TIP, ICON_WARNING,
+};
 
 /// 执行数据处理命令
 pub fn execute(file: &str, query: Option<&str>, quality_check: bool) -> Result<()> {
@@ -17,11 +19,7 @@ pub fn execute(file: &str, query: Option<&str>, quality_check: bool) -> Result<(
         return Err(anyhow::anyhow!("文件不存在: {}", file));
     }
 
-    let extension = path
-        .extension()
-        .and_then(|e| e.to_str())
-        .unwrap_or("")
-        .to_lowercase();
+    let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
 
     // 根据模式执行不同操作
     if quality_check {
@@ -37,12 +35,7 @@ pub fn execute(file: &str, query: Option<&str>, quality_check: bool) -> Result<(
 
 /// 数据预览
 fn run_data_preview(file: &str, extension: &str) -> Result<()> {
-    println!(
-        "{} {} {}\n",
-        "📄".cyan(),
-        "数据预览:".bold(),
-        file.yellow()
-    );
+    println!("{} {} {}\n", "📄".cyan(), "数据预览:".bold(), file.yellow());
 
     match extension {
         "csv" => preview_csv(file)?,
@@ -52,10 +45,7 @@ fn run_data_preview(file: &str, extension: &str) -> Result<()> {
         }
         _ => {
             println!("{}", format!("不支持的文件格式: {}", extension).red());
-            println!(
-                "{}",
-                "支持的格式: csv, json, parquet".dimmed()
-            );
+            println!("{}", "支持的格式: csv, json, parquet".dimmed());
         }
     }
 
@@ -64,8 +54,8 @@ fn run_data_preview(file: &str, extension: &str) -> Result<()> {
 
 /// 预览 CSV 文件
 fn preview_csv(file: &str) -> Result<()> {
-    let content = std::fs::read_to_string(file)
-        .with_context(|| format!("无法读取文件: {}", file))?;
+    let content =
+        std::fs::read_to_string(file).with_context(|| format!("无法读取文件: {}", file))?;
 
     let mut lines = content.lines();
     let headers: Vec<&str> = match lines.next() {
@@ -77,10 +67,7 @@ fn preview_csv(file: &str) -> Result<()> {
     };
 
     // 创建表格
-    let columns: Vec<Column> = headers
-        .iter()
-        .map(|h| Column::new(h))
-        .collect();
+    let columns: Vec<Column> = headers.iter().map(|h| Column::new(h)).collect();
 
     let mut table = Table::new(columns).with_style(TableStyle::Simple);
 
@@ -109,12 +96,12 @@ fn preview_csv(file: &str) -> Result<()> {
 
 /// 预览 JSON 文件
 fn preview_json(file: &str) -> Result<()> {
-    let content = std::fs::read_to_string(file)
-        .with_context(|| format!("无法读取文件: {}", file))?;
+    let content =
+        std::fs::read_to_string(file).with_context(|| format!("无法读取文件: {}", file))?;
 
     // 尝试解析 JSON
-    let value: serde_json::Value = serde_json::from_str(&content)
-        .with_context(|| "无效的 JSON 格式")?;
+    let value: serde_json::Value =
+        serde_json::from_str(&content).with_context(|| "无效的 JSON 格式")?;
 
     match &value {
         serde_json::Value::Array(arr) => {
@@ -126,10 +113,7 @@ fn preview_json(file: &str) -> Result<()> {
             // 从第一个对象提取键作为表头
             if let Some(serde_json::Value::Object(first)) = arr.first() {
                 let headers: Vec<&str> = first.keys().map(|s| s.as_str()).collect();
-                let columns: Vec<Column> = headers
-                    .iter()
-                    .map(|h| Column::new(h))
-                    .collect();
+                let columns: Vec<Column> = headers.iter().map(|h| Column::new(h)).collect();
 
                 let mut table = Table::new(columns).with_style(TableStyle::Simple);
 
@@ -137,11 +121,7 @@ fn preview_json(file: &str) -> Result<()> {
                     if let serde_json::Value::Object(map) = obj {
                         let cells: Vec<String> = headers
                             .iter()
-                            .map(|h| {
-                                map.get(*h)
-                                    .map(|v| format_json_value(v))
-                                    .unwrap_or_default()
-                            })
+                            .map(|h| map.get(*h).map(|v| format_json_value(v)).unwrap_or_default())
                             .collect();
                         table.add_row(cells);
                     }
@@ -167,11 +147,7 @@ fn preview_json(file: &str) -> Result<()> {
         serde_json::Value::Object(obj) => {
             println!("JSON 对象 ({} 个字段):\n", obj.len());
             for (key, value) in obj.iter().take(20) {
-                println!(
-                    "  {}: {}",
-                    key.cyan(),
-                    format_json_value(value).dimmed()
-                );
+                println!("  {}: {}", key.cyan(), format_json_value(value).dimmed());
             }
             if obj.len() > 20 {
                 println!("  ... 共 {} 个字段", obj.len());
@@ -212,10 +188,7 @@ fn run_sql_query(file: &str, sql: &str, extension: &str) -> Result<()> {
     match extension {
         "csv" | "parquet" => {
             // TODO: 实现实际的 SQL 查询 (使用 xore-process / Polars)
-            println!(
-                "{}",
-                "SQL 查询功能即将推出，将使用 Polars SQL 引擎".yellow()
-            );
+            println!("{}", "SQL 查询功能即将推出，将使用 Polars SQL 引擎".yellow());
             println!("\n示例输出:");
 
             // 模拟输出
@@ -231,16 +204,10 @@ fn run_sql_query(file: &str, sql: &str, extension: &str) -> Result<()> {
                 .row(["value3", "3456"]);
 
             print!("{}", table.render());
-            println!(
-                "\n{} 处理完成 (模拟数据)",
-                ICON_SUCCESS.green()
-            );
+            println!("\n{} 处理完成 (模拟数据)", ICON_SUCCESS.green());
         }
         _ => {
-            println!(
-                "{}",
-                format!("SQL 查询不支持 {} 格式", extension).red()
-            );
+            println!("{}", format!("SQL 查询不支持 {} 格式", extension).red());
         }
     }
 
@@ -249,25 +216,14 @@ fn run_sql_query(file: &str, sql: &str, extension: &str) -> Result<()> {
 
 /// 数据质量检查
 fn run_quality_check(file: &str, extension: &str) -> Result<()> {
-    println!(
-        "{} {} {}\n",
-        "🔍".cyan(),
-        "数据质量检查:".bold(),
-        file.yellow()
-    );
+    println!("{} {} {}\n", "🔍".cyan(), "数据质量检查:".bold(), file.yellow());
 
     match extension {
         "csv" => quality_check_csv(file)?,
         "json" => quality_check_json(file)?,
         _ => {
-            println!(
-                "{}",
-                format!("质量检查不支持 {} 格式", extension).red()
-            );
-            println!(
-                "{}",
-                "支持的格式: csv, json".dimmed()
-            );
+            println!("{}", format!("质量检查不支持 {} 格式", extension).red());
+            println!("{}", "支持的格式: csv, json".dimmed());
         }
     }
 
@@ -276,8 +232,8 @@ fn run_quality_check(file: &str, extension: &str) -> Result<()> {
 
 /// CSV 文件质量检查
 fn quality_check_csv(file: &str) -> Result<()> {
-    let content = std::fs::read_to_string(file)
-        .with_context(|| format!("无法读取文件: {}", file))?;
+    let content =
+        std::fs::read_to_string(file).with_context(|| format!("无法读取文件: {}", file))?;
 
     let lines: Vec<&str> = content.lines().collect();
     if lines.is_empty() {
@@ -332,24 +288,14 @@ fn quality_check_csv(file: &str) -> Result<()> {
 
     if !missing_cols.is_empty() {
         has_issues = true;
-        let cols_with_missing: Vec<_> = missing_cols
-            .iter()
-            .filter(|(_, count)| *count > 0.0)
-            .collect();
+        let cols_with_missing: Vec<_> =
+            missing_cols.iter().filter(|(_, count)| *count > 0.0).collect();
 
         if !cols_with_missing.is_empty() {
-            println!(
-                "  {} 发现 {} 列存在缺失值",
-                ICON_WARNING.yellow(),
-                cols_with_missing.len()
-            );
+            println!("  {} 发现 {} 列存在缺失值", ICON_WARNING.yellow(), cols_with_missing.len());
             for (name, count) in cols_with_missing.iter().take(5) {
                 let percent = (*count / total_rows as f64) * 100.0;
-                println!(
-                    "    - {}: {:.1}% 缺失",
-                    name.cyan(),
-                    percent
-                );
+                println!("    - {}: {:.1}% 缺失", name.cyan(), percent);
             }
         }
     }
@@ -379,17 +325,10 @@ fn quality_check_csv(file: &str) -> Result<()> {
     // 建议
     println!("\n{}", "建议".bold());
     if duplicates > 0 {
-        println!(
-            "  {} 运行 'xore p {} --deduplicate' 去除重复行",
-            ICON_TIP,
-            file
-        );
+        println!("  {} 运行 'xore p {} --deduplicate' 去除重复行", ICON_TIP, file);
     }
     if !missing_cols.is_empty() {
-        println!(
-            "  {} 检查数据源，确保必填字段有值",
-            ICON_TIP
-        );
+        println!("  {} 检查数据源，确保必填字段有值", ICON_TIP);
     }
     if !has_issues {
         println!("  {} 数据质量良好，可以继续处理", ICON_TIP);
@@ -400,11 +339,11 @@ fn quality_check_csv(file: &str) -> Result<()> {
 
 /// JSON 文件质量检查
 fn quality_check_json(file: &str) -> Result<()> {
-    let content = std::fs::read_to_string(file)
-        .with_context(|| format!("无法读取文件: {}", file))?;
+    let content =
+        std::fs::read_to_string(file).with_context(|| format!("无法读取文件: {}", file))?;
 
-    let value: serde_json::Value = serde_json::from_str(&content)
-        .with_context(|| "无效的 JSON 格式")?;
+    let value: serde_json::Value =
+        serde_json::from_str(&content).with_context(|| "无效的 JSON 格式")?;
 
     // 基本信息
     println!("{}", "基本信息".bold());
@@ -421,10 +360,8 @@ fn quality_check_json(file: &str) -> Result<()> {
             // 检查一致性
             println!("\n{}", "发现的问题".bold());
             let mut inconsistent = 0;
-            let first_keys: Option<std::collections::HashSet<&String>> = arr
-                .first()
-                .and_then(|v| v.as_object())
-                .map(|obj| obj.keys().collect());
+            let first_keys: Option<std::collections::HashSet<&String>> =
+                arr.first().and_then(|v| v.as_object()).map(|obj| obj.keys().collect());
 
             if let Some(ref keys) = first_keys {
                 for item in arr.iter().skip(1) {

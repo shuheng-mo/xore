@@ -91,11 +91,7 @@ pub fn execute(args: FindArgs) -> Result<()> {
     // 创建进度条（仅在终端中显示）
     let spinner = if atty::is(atty::Stream::Stdout) {
         let pb = ProgressBar::new_spinner();
-        pb.set_style(
-            ProgressStyle::default_spinner()
-                .template("{spinner:.cyan} {msg}")
-                .unwrap(),
-        );
+        pb.set_style(ProgressStyle::default_spinner().template("{spinner:.cyan} {msg}").unwrap());
         pb.set_message("正在扫描...");
         pb.enable_steady_tick(std::time::Duration::from_millis(100));
         Some(pb)
@@ -122,12 +118,7 @@ pub fn execute(args: FindArgs) -> Result<()> {
             let query_lower = query.to_lowercase();
             files
                 .into_iter()
-                .filter(|f| {
-                    f.path
-                        .to_string_lossy()
-                        .to_lowercase()
-                        .contains(&query_lower)
-                })
+                .filter(|f| f.path.to_string_lossy().to_lowercase().contains(&query_lower))
                 .collect()
         }
     } else {
@@ -169,25 +160,15 @@ pub fn execute(args: FindArgs) -> Result<()> {
     );
 
     if stats.total_size > 0 {
-        println!(
-            "  总大小: {}",
-            format_size(stats.total_size).cyan()
-        );
+        println!("  总大小: {}", format_size(stats.total_size).cyan());
     }
 
     if stats.skipped > 0 {
-        println!(
-            "  已跳过: {} 个文件 (不匹配过滤条件)",
-            stats.skipped.to_string().dimmed()
-        );
+        println!("  已跳过: {} 个文件 (不匹配过滤条件)", stats.skipped.to_string().dimmed());
     }
 
     if stats.errors > 0 {
-        println!(
-            "  {} {} 个文件访问错误",
-            "⚠".yellow(),
-            stats.errors.to_string().yellow()
-        );
+        println!("  {} {} 个文件访问错误", "⚠".yellow(), stats.errors.to_string().yellow());
     }
 
     Ok(())

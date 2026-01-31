@@ -25,10 +25,7 @@ fn create_test_directory() -> TempDir {
         .unwrap()
         .write_all(b"fn main() { println!(\"Hello\"); }")
         .unwrap();
-    File::create(root.join("src/lib.rs"))
-        .unwrap()
-        .write_all(b"pub mod utils;")
-        .unwrap();
+    File::create(root.join("src/lib.rs")).unwrap().write_all(b"pub mod utils;").unwrap();
 
     // CSV 数据文件
     File::create(root.join("data/users.csv"))
@@ -53,23 +50,14 @@ fn create_test_directory() -> TempDir {
         .unwrap();
 
     // 隐藏目录中的文件
-    File::create(root.join(".hidden/secret.txt"))
-        .unwrap()
-        .write_all(b"secret content")
-        .unwrap();
+    File::create(root.join(".hidden/secret.txt")).unwrap().write_all(b"secret content").unwrap();
 
     // 大文件（用于大小过滤测试）
     let large_content = vec![b'x'; 10 * 1024]; // 10KB
-    File::create(root.join("data/large.csv"))
-        .unwrap()
-        .write_all(&large_content)
-        .unwrap();
+    File::create(root.join("data/large.csv")).unwrap().write_all(&large_content).unwrap();
 
     // 创建 .gitignore
-    File::create(root.join(".gitignore"))
-        .unwrap()
-        .write_all(b"*.log\n.hidden/")
-        .unwrap();
+    File::create(root.join(".gitignore")).unwrap().write_all(b"*.log\n.hidden/").unwrap();
 
     temp_dir
 }
@@ -77,9 +65,8 @@ fn create_test_directory() -> TempDir {
 #[test]
 fn test_scan_all_files() {
     let temp_dir = create_test_directory();
-    let config = ScanConfig::new(temp_dir.path())
-        .with_include_hidden(true)
-        .with_respect_gitignore(false);
+    let config =
+        ScanConfig::new(temp_dir.path()).with_include_hidden(true).with_respect_gitignore(false);
 
     let scanner = FileScanner::new(config);
     let (_files, stats) = scanner.scan().unwrap();
@@ -190,16 +177,11 @@ fn test_scan_with_gitignore() {
     let temp_dir = create_test_directory();
 
     // 初始化 git 仓库让 gitignore 生效
-    std::process::Command::new("git")
-        .args(["init"])
-        .current_dir(temp_dir.path())
-        .output()
-        .ok();
+    std::process::Command::new("git").args(["init"]).current_dir(temp_dir.path()).output().ok();
 
     // 启用 gitignore（默认行为）
-    let config = ScanConfig::new(temp_dir.path())
-        .with_respect_gitignore(true)
-        .with_include_hidden(false);
+    let config =
+        ScanConfig::new(temp_dir.path()).with_respect_gitignore(true).with_include_hidden(false);
 
     let scanner = FileScanner::new(config);
     let (files, _stats) = scanner.scan().unwrap();
@@ -207,11 +189,7 @@ fn test_scan_with_gitignore() {
     // .log 文件和 .hidden 目录应该被忽略
     for file in &files {
         let path_str = file.path.to_string_lossy();
-        assert!(
-            !path_str.ends_with(".log"),
-            "Log file should be ignored: {:?}",
-            file.path
-        );
+        assert!(!path_str.ends_with(".log"), "Log file should be ignored: {:?}", file.path);
         assert!(
             !path_str.contains(".hidden"),
             "Hidden directory should be ignored: {:?}",
@@ -223,17 +201,14 @@ fn test_scan_with_gitignore() {
 #[test]
 fn test_scan_include_hidden() {
     let temp_dir = create_test_directory();
-    let config = ScanConfig::new(temp_dir.path())
-        .with_include_hidden(true)
-        .with_respect_gitignore(false);
+    let config =
+        ScanConfig::new(temp_dir.path()).with_include_hidden(true).with_respect_gitignore(false);
 
     let scanner = FileScanner::new(config);
     let (files, _stats) = scanner.scan().unwrap();
 
     // 应该能找到隐藏目录中的文件
-    let has_hidden = files
-        .iter()
-        .any(|f| f.path.to_string_lossy().contains(".hidden"));
+    let has_hidden = files.iter().any(|f| f.path.to_string_lossy().contains(".hidden"));
     assert!(has_hidden, "Should find files in hidden directory");
 }
 
@@ -242,9 +217,7 @@ fn test_scan_max_depth() {
     let temp_dir = create_test_directory();
 
     // 只扫描第一层
-    let config = ScanConfig::new(temp_dir.path())
-        .with_max_depth(1)
-        .with_respect_gitignore(false);
+    let config = ScanConfig::new(temp_dir.path()).with_max_depth(1).with_respect_gitignore(false);
 
     let scanner = FileScanner::new(config);
     let (files, _stats) = scanner.scan().unwrap();
@@ -272,10 +245,7 @@ fn test_scan_combined_filters() {
 
     // 应该找到小于 5KB 的 CSV 文件
     for file in &files {
-        assert!(
-            file.path.extension().map(|e| e == "csv").unwrap_or(false),
-            "Expected CSV file"
-        );
+        assert!(file.path.extension().map(|e| e == "csv").unwrap_or(false), "Expected CSV file");
         assert!(file.size < 5 * 1024, "Expected file < 5KB");
     }
     // 排除 large.csv（10KB）
@@ -288,10 +258,7 @@ fn test_scan_custom_extensions() {
 
     // 使用自定义扩展名列表
     let config = ScanConfig::new(temp_dir.path())
-        .with_file_type(FileTypeFilter::Custom(vec![
-            "csv".to_string(),
-            "json".to_string(),
-        ]))
+        .with_file_type(FileTypeFilter::Custom(vec!["csv".to_string(), "json".to_string()]))
         .with_respect_gitignore(false);
 
     let scanner = FileScanner::new(config);
@@ -313,9 +280,8 @@ fn test_scan_custom_extensions() {
 #[test]
 fn test_scan_statistics() {
     let temp_dir = create_test_directory();
-    let config = ScanConfig::new(temp_dir.path())
-        .with_respect_gitignore(false)
-        .with_include_hidden(true);
+    let config =
+        ScanConfig::new(temp_dir.path()).with_respect_gitignore(false).with_include_hidden(true);
 
     let scanner = FileScanner::new(config);
     let (_files, stats) = scanner.scan().unwrap();
@@ -352,8 +318,7 @@ fn test_mtime_filter_within_days() {
     let new_file = temp_dir.path().join("new.txt");
     File::create(&new_file).unwrap().write_all(b"new content").unwrap();
 
-    let config = ScanConfig::new(temp_dir.path())
-        .with_mtime_filter(MtimeFilter::WithinDays(1)); // 过去1天内
+    let config = ScanConfig::new(temp_dir.path()).with_mtime_filter(MtimeFilter::WithinDays(1)); // 过去1天内
 
     let scanner = FileScanner::new(config);
     let (files, stats) = scanner.scan().unwrap();
@@ -397,18 +362,9 @@ fn test_file_type_filter_parsing() {
 #[test]
 fn test_size_filter_parsing() {
     // 测试各种大小过滤器解析
-    assert!(matches!(
-        SizeFilter::parse(">1KB").unwrap(),
-        SizeFilter::GreaterThan(1024)
-    ));
-    assert!(matches!(
-        SizeFilter::parse("<10MB").unwrap(),
-        SizeFilter::LessThan(10485760)
-    ));
-    assert!(matches!(
-        SizeFilter::parse("=1GB").unwrap(),
-        SizeFilter::Equal(1073741824)
-    ));
+    assert!(matches!(SizeFilter::parse(">1KB").unwrap(), SizeFilter::GreaterThan(1024)));
+    assert!(matches!(SizeFilter::parse("<10MB").unwrap(), SizeFilter::LessThan(10485760)));
+    assert!(matches!(SizeFilter::parse("=1GB").unwrap(), SizeFilter::Equal(1073741824)));
 
     // 测试范围
     if let SizeFilter::Between(min, max) = SizeFilter::parse("1KB-1MB").unwrap() {
@@ -422,18 +378,9 @@ fn test_size_filter_parsing() {
 #[test]
 fn test_mtime_filter_parsing() {
     // 测试修改时间过滤器解析
-    assert!(matches!(
-        MtimeFilter::parse("-7d").unwrap(),
-        MtimeFilter::WithinDays(7)
-    ));
-    assert!(matches!(
-        MtimeFilter::parse("+30d").unwrap(),
-        MtimeFilter::OlderThanDays(30)
-    ));
-    assert!(matches!(
-        MtimeFilter::parse("2024-01-01").unwrap(),
-        MtimeFilter::After(_)
-    ));
+    assert!(matches!(MtimeFilter::parse("-7d").unwrap(), MtimeFilter::WithinDays(7)));
+    assert!(matches!(MtimeFilter::parse("+30d").unwrap(), MtimeFilter::OlderThanDays(30)));
+    assert!(matches!(MtimeFilter::parse("2024-01-01").unwrap(), MtimeFilter::After(_)));
 
     // 测试无效格式
     assert!(MtimeFilter::parse("invalid").is_err());
@@ -444,9 +391,7 @@ fn test_parallel_scan_threads() {
     let temp_dir = create_test_directory();
 
     // 测试指定线程数
-    let config = ScanConfig::new(temp_dir.path())
-        .with_threads(4)
-        .with_respect_gitignore(false);
+    let config = ScanConfig::new(temp_dir.path()).with_threads(4).with_respect_gitignore(false);
 
     let scanner = FileScanner::new(config);
     let (_files, stats) = scanner.scan().unwrap();

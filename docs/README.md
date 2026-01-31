@@ -1,0 +1,80 @@
+# XORE 文档
+
+> Explore the Abyss, Extract the Core
+
+XORE 是一个高性能的本地 CLI 工具，将语义搜索与即时数据分析融为一体。
+
+## 快速链接
+
+- [快速入门](./getting-started.md) - 安装和基本用法
+- [命令参考](./commands/README.md) - 所有命令详细说明
+- [技术参考](./reference/filters.md) - 过滤器、配置、环境变量
+
+## 安装
+
+### 从源码编译
+
+```bash
+# 克隆仓库
+git clone https://github.com/yourusername/xore.git
+cd xore
+
+# 编译 release 版本
+cargo build --release
+
+# 可执行文件位于
+./target/release/xore --help
+```
+
+### 使用 Cargo 安装
+
+```bash
+cargo install xore
+```
+
+## 核心功能
+
+| 功能 | 命令 | 说明 |
+|-----|------|------|
+| 文件搜索 | `xore find` | 高性能文件扫描与内容搜索 |
+| 数据处理 | `xore process` | CSV/JSON 数据预览与质量检查 |
+| 性能测试 | `xore benchmark` | 系统性能基准测试 |
+
+## 文档结构
+
+```
+docs/
+├── README.md              # 本文件 - 文档索引
+├── getting-started.md     # 快速入门指南
+├── commands/              # 命令参考
+│   ├── README.md          # 命令概览
+│   ├── find.md            # find 命令详解
+│   ├── process.md         # process 命令详解
+│   └── benchmark.md       # benchmark 命令详解
+└── reference/             # 技术参考
+    ├── filters.md         # 过滤器语法参考
+    ├── configuration.md   # 配置文件参考
+    └── environment.md     # 环境变量参考
+```
+
+## 版本信息
+
+- 当前版本: 1.0.0
+- Rust 最低版本: 1.70+
+- 支持平台: Linux, macOS, Windows
+
+## 获取帮助
+
+```bash
+# 查看帮助
+xore --help
+
+# 查看特定命令帮助
+xore find --help
+xore process --help
+xore benchmark --help
+```
+
+## 许可证
+
+MIT License

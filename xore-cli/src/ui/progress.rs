@@ -31,10 +31,7 @@ impl Spinner {
         let pb = IndicatifBar::new_spinner();
         let template = format!("{{spinner:.{}}} {{msg}}", color);
         pb.set_style(
-            ProgressStyle::default_spinner()
-                .template(&template)
-                .unwrap()
-                .tick_chars("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"),
+            ProgressStyle::default_spinner().template(&template).unwrap().tick_chars("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"),
         );
         pb.set_message(message.to_string());
         pb.enable_steady_tick(Duration::from_millis(80));
@@ -95,7 +92,9 @@ impl ProgressBar {
         let pb = IndicatifBar::new(total);
         pb.set_style(
             ProgressStyle::default_bar()
-                .template("{spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} files ({percent}%) {msg}")
+                .template(
+                    "{spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} files ({percent}%) {msg}",
+                )
                 .unwrap()
                 .progress_chars("━━╺"),
         );
@@ -152,9 +151,7 @@ pub struct MultiProgress {
 impl MultiProgress {
     /// 创建新的多进度条管理器
     pub fn new() -> Self {
-        Self {
-            inner: indicatif::MultiProgress::new(),
-        }
+        Self { inner: indicatif::MultiProgress::new() }
     }
 
     /// 添加一个 Spinner

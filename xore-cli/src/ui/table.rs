@@ -80,19 +80,12 @@ pub struct Table {
 impl Table {
     /// 创建新表格
     pub fn new(columns: Vec<Column>) -> Self {
-        Self {
-            columns,
-            rows: Vec::new(),
-            style: TableStyle::default(),
-        }
+        Self { columns, rows: Vec::new(), style: TableStyle::default() }
     }
 
     /// 从标题字符串创建表格
     pub fn from_headers(headers: &[&str]) -> Self {
-        let columns = headers
-            .iter()
-            .map(|h| Column::new(h))
-            .collect();
+        let columns = headers.iter().map(|h| Column::new(h)).collect();
         Self::new(columns)
     }
 
@@ -124,11 +117,7 @@ impl Table {
 
     /// 计算每列的实际宽度
     fn calculate_widths(&self) -> Vec<usize> {
-        let mut widths: Vec<usize> = self
-            .columns
-            .iter()
-            .map(|c| c.header.len())
-            .collect();
+        let mut widths: Vec<usize> = self.columns.iter().map(|c| c.header.len()).collect();
 
         for row in &self.rows {
             for (i, cell) in row.iter().enumerate() {

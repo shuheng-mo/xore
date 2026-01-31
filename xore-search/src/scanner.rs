@@ -89,26 +89,23 @@ impl MtimeFilter {
         // 处理相对时间格式
         if let Some(rest) = s.strip_prefix('-') {
             if let Some(days_str) = rest.strip_suffix('d') {
-                let days: u32 = days_str.parse()
-                    .context("Invalid days number")?;
+                let days: u32 = days_str.parse().context("Invalid days number")?;
                 return Ok(MtimeFilter::WithinDays(days));
             }
         }
 
         if let Some(rest) = s.strip_prefix('+') {
             if let Some(days_str) = rest.strip_suffix('d') {
-                let days: u32 = days_str.parse()
-                    .context("Invalid days number")?;
+                let days: u32 = days_str.parse().context("Invalid days number")?;
                 return Ok(MtimeFilter::OlderThanDays(days));
             }
         }
 
         // 处理绝对日期格式 YYYY-MM-DD
         if let Ok(date) = chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d") {
-            let datetime = date.and_hms_opt(0, 0, 0)
-                .context("Invalid date")?;
-            let system_time = SystemTime::UNIX_EPOCH +
-                Duration::from_secs(datetime.and_utc().timestamp() as u64);
+            let datetime = date.and_hms_opt(0, 0, 0).context("Invalid date")?;
+            let system_time =
+                SystemTime::UNIX_EPOCH + Duration::from_secs(datetime.and_utc().timestamp() as u64);
             return Ok(MtimeFilter::After(system_time));
         }
 
@@ -158,7 +155,8 @@ impl FileTypeFilter {
             "parquet" => Ok(FileTypeFilter::Parquet),
             _ => {
                 // 支持逗号分隔的扩展名列表
-                let extensions: Vec<String> = s.split(',')
+                let extensions: Vec<String> = s
+                    .split(',')
                     .map(|ext| ext.trim().trim_start_matches('.').to_lowercase())
                     .collect();
                 Ok(FileTypeFilter::Custom(extensions))
@@ -173,8 +171,8 @@ impl FileTypeFilter {
             FileTypeFilter::Json => vec!["json", "jsonl", "ndjson"],
             FileTypeFilter::Log => vec!["log", "logs"],
             FileTypeFilter::Code => vec![
-                "rs", "py", "js", "ts", "go", "java", "c", "cpp", "h", "hpp",
-                "rb", "php", "swift", "kt", "scala", "sh", "bash", "zsh",
+                "rs", "py", "js", "ts", "go", "java", "c", "cpp", "h", "hpp", "rb", "php", "swift",
+                "kt", "scala", "sh", "bash", "zsh",
             ],
             FileTypeFilter::Text => vec!["txt", "md", "rst", "text"],
             FileTypeFilter::Parquet => vec!["parquet", "pq"],
@@ -184,9 +182,7 @@ impl FileTypeFilter {
 
     /// 检查文件是否匹配类型过滤
     pub fn matches(&self, path: &Path) -> bool {
-        let ext = path.extension()
-            .and_then(|e| e.to_str())
-            .map(|e| e.to_lowercase());
+        let ext = path.extension().and_then(|e| e.to_str()).map(|e| e.to_lowercase());
 
         match ext {
             Some(ext) => self.extensions().contains(&ext.as_str()),
@@ -263,10 +259,7 @@ impl Default for ScanConfig {
 impl ScanConfig {
     /// 创建新的扫描配置
     pub fn new<P: AsRef<Path>>(root: P) -> Self {
-        Self {
-            root: root.as_ref().to_path_buf(),
-            ..Default::default()
-        }
+        Self { root: root.as_ref().to_path_buf(), ..Default::default() }
     }
 
     /// 设置文件类型过滤
@@ -353,11 +346,7 @@ impl FileScanner {
         let mut builder = WalkBuilder::new(&self.config.root);
 
         // 配置并行线程数
-        let threads = if self.config.threads == 0 {
-            num_cpus::get()
-        } else {
-            self.config.threads
-        };
+        let threads = if self.config.threads == 0 { num_cpus::get() } else { self.config.threads };
         builder.threads(threads);
 
         // 配置 gitignore
@@ -430,20 +419,20 @@ impl FileScanner {
         let walker = self.build_walker();
 
         // 收集所有条目
-        let entries: Vec<_> = walker.build()
-            .filter_map(|entry| {
-                match entry {
-                    Ok(e) => Some(e),
-                    Err(err) => {
-                        warn!("Error accessing entry: {}", err);
-                        None
-                    }
+        let entries: Vec<_> = walker
+            .build()
+            .filter_map(|entry| match entry {
+                Ok(e) => Some(e),
+                Err(err) => {
+                    warn!("Error accessing entry: {}", err);
+                    None
                 }
             })
             .collect();
 
         // 使用 Rayon 并行处理
-        let results: Vec<(Option<ScannedFile>, bool, bool)> = entries.par_iter()
+        let results: Vec<(Option<ScannedFile>, bool, bool)> = entries
+            .par_iter()
             .map(|entry| {
                 let is_dir = entry.file_type().map(|t| t.is_dir()).unwrap_or(false);
 
@@ -452,7 +441,7 @@ impl FileScanner {
                         let matches = self.matches_filters(&file);
                         (Some(file), is_dir, matches)
                     }
-                    None => (None, is_dir, false)
+                    None => (None, is_dir, false),
                 }
             })
             .collect();
@@ -493,20 +482,17 @@ impl FileScanner {
     pub fn scan_iter(&self) -> impl Iterator<Item = Result<ScannedFile>> + '_ {
         let walker = self.build_walker();
 
-        walker.build()
-            .filter_map(move |entry| {
-                match entry {
-                    Ok(e) => {
-                        let file = ScannedFile::from_entry(&e)?;
-                        if self.matches_filters(&file) {
-                            Some(Ok(file))
-                        } else {
-                            None
-                        }
-                    }
-                    Err(err) => Some(Err(anyhow::anyhow!("Error accessing entry: {}", err)))
+        walker.build().filter_map(move |entry| match entry {
+            Ok(e) => {
+                let file = ScannedFile::from_entry(&e)?;
+                if self.matches_filters(&file) {
+                    Some(Ok(file))
+                } else {
+                    None
                 }
-            })
+            }
+            Err(err) => Some(Err(anyhow::anyhow!("Error accessing entry: {}", err))),
+        })
     }
 }
 
@@ -530,11 +516,14 @@ fn parse_size(s: &str) -> Result<u64> {
     } else if s.ends_with('B') {
         (&s[..s.len() - 1], 1)
     } else {
-        return Err(anyhow::anyhow!("Invalid size format: {}. Use format like '1MB', '500KB', '2GB'", s));
+        return Err(anyhow::anyhow!(
+            "Invalid size format: {}. Use format like '1MB', '500KB', '2GB'",
+            s
+        ));
     };
 
-    let num: f64 = num_str.trim().parse()
-        .with_context(|| format!("Invalid number in size: {}", num_str))?;
+    let num: f64 =
+        num_str.trim().parse().with_context(|| format!("Invalid number in size: {}", num_str))?;
 
     Ok((num * unit as f64) as u64)
 }

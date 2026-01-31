@@ -1,0 +1,157 @@
+# process 命令
+
+数据处理与分析命令。
+
+**别名:** `p`
+
+## 语法
+
+```bash
+xore process [OPTIONS] <FILE> [QUERY]
+xore p [OPTIONS] <FILE> [QUERY]
+```
+
+## 描述
+
+`process` 命令用于处理和分析数据文件。支持：
+- 数据预览（表格格式显示）
+- 数据质量检查
+- SQL 查询（开发中）
+
+## 参数
+
+### 位置参数
+
+| 参数 | 类型 | 必填 | 说明 |
+|-----|------|-----|------|
+| `FILE` | String | 是 | 数据文件路径 |
+| `QUERY` | String | 否 | SQL 查询语句（开发中）|
+
+### 选项参数
+
+| 选项 | 类型 | 默认值 | 说明 |
+|-----|------|-------|------|
+| `--quality-check` | bool | false | 执行数据质量检查 |
+
+## 支持的文件格式
+
+| 格式 | 扩展名 | 预览 | 质量检查 | SQL 查询 |
+|-----|-------|-----|---------|---------|
+| CSV | .csv | ✅ | ✅ | 🔄 开发中 |
+| JSON | .json | ✅ | ✅ | 🔄 开发中 |
+| Parquet | .parquet | 🔄 开发中 | 🔄 开发中 | 🔄 开发中 |
+
+## 使用示例
+
+### 数据预览
+
+```bash
+# 预览 CSV 文件
+xore process data.csv
+xore p data.csv
+
+# 预览 JSON 文件
+xore p config.json
+```
+
+### 数据质量检查
+
+```bash
+# 检查 CSV 数据质量
+xore process data.csv --quality-check
+xore p sales.csv --quality-check
+
+# 检查 JSON 数据质量
+xore p users.json --quality-check
+```
+
+### SQL 查询（开发中）
+
+```bash
+# 基本查询
+xore p data.csv "SELECT * FROM self WHERE age > 30"
+
+# 聚合查询
+xore p sales.csv "SELECT region, SUM(revenue) FROM self GROUP BY region"
+```
+
+## 输出示例
+
+### CSV 预览
+
+```
+📄 数据预览: data.csv
+
+ id  | name    | age | city
+-----|---------|-----|----------
+ 1   | Alice   | 28  | Beijing
+ 2   | Bob     | 32  | Shanghai
+ 3   | Charlie | 25  | Shenzhen
+
+显示前 3 行 (共 1,000 行)
+```
+
+### JSON 预览（数组）
+
+```
+📄 数据预览: users.json
+
+ id  | name    | email
+-----|---------|------------------
+ 1   | Alice   | alice@example.com
+ 2   | Bob     | bob@example.com
+
+数组包含 100 个元素，显示前 10 个
+```
+
+### JSON 预览（对象）
+
+```
+📄 数据预览: config.json
+
+键                | 值
+------------------|------------------
+database.host     | localhost
+database.port     | 5432
+server.timeout    | 30
+
+对象包含 15 个字段，显示前 20 个
+```
+
+### 数据质量检查报告
+
+```
+🔍 数据质量检查: data.csv
+
+基本信息
+  ✓ 总行数: 1,000
+  ✓ 总列数: 4
+
+发现的问题
+  ⚠ 发现 1 列存在缺失值
+    - age: 5.2% 缺失 (52 行)
+  ⚠ 检测到 15 行重复数据
+
+建议
+  💡 运行 'xore p data.csv --deduplicate' 去除重复行
+  💡 检查数据源，确保必填字段有值
+```
+
+## 质量检查项
+
+| 检查项 | 说明 |
+|-------|------|
+| 行数统计 | 总行数 |
+| 列数统计 | 总列数 |
+| 缺失值检测 | 按列统计空值比例 |
+| 重复行检测 | 完全相同的行数 |
+| 格式一致性 | JSON 结构异常检测 |
+
+## 相关命令
+
+- [find](./find.md) - 查找数据文件
+- [benchmark](./benchmark.md) - 测试处理性能
+
+## 另请参阅
+
+- [配置文件参考](../reference/configuration.md)

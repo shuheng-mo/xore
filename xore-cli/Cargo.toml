@@ -11,7 +11,13 @@ description = "XORE CLI - Command-line interface for search and data processing"
 name = "xore"
 path = "src/main.rs"
 
+[features]
+default = ["mimalloc"]
+mimalloc = ["dep:mimalloc"]
+
 [dependencies]
+# 性能优化 - 可选分配器
+mimalloc = { workspace = true, optional = true }
 # 内部依赖
 xore-core = { path = "../xore-core" }
 xore-search = { path = "../xore-search" }

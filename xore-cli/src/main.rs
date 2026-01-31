@@ -1,5 +1,10 @@
 //! XORE CLI - 命令行入口
 
+// 全局内存分配器配置 - 使用 mimalloc 提升性能
+#[cfg(feature = "mimalloc")]
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
 use clap::{Parser, Subcommand};
 use xore_core::LogConfig;
 
@@ -48,11 +53,11 @@ enum Commands {
         r#type: Option<String>,
 
         /// 文件大小过滤（例如：">1MB", "<500KB", "1MB-10MB"）
-        #[arg(long, short = 's')]
+        #[arg(long, short = 's', allow_hyphen_values = true)]
         size: Option<String>,
 
         /// 修改时间过滤（例如："-7d" 过去7天, "+30d" 超过30天, "2024-01-01"）
-        #[arg(long, short = 'm')]
+        #[arg(long, short = 'm', allow_hyphen_values = true)]
         mtime: Option<String>,
 
         /// 最大遍历深度
@@ -97,7 +102,7 @@ enum Commands {
     /// 性能基准测试
     #[command(alias = "bench")]
     Benchmark {
-        /// 测试套件 (all, scan, search, process, io)
+        /// 测试套件 (all, scan, search, process, io, alloc)
         #[arg(long, short = 's', default_value = "all")]
         suite: benchmark::BenchmarkSuite,
 
@@ -159,13 +164,7 @@ fn main() -> anyhow::Result<()> {
         Commands::Process { file, query, quality_check } => {
             process::execute(&file, query.as_deref(), quality_check)?;
         }
-        Commands::Benchmark {
-            suite,
-            output,
-            iterations,
-            data_path,
-            warmup,
-        } => {
+        Commands::Benchmark { suite, output, iterations, data_path, warmup } => {
             benchmark::execute(benchmark::BenchmarkArgs {
                 suite,
                 output,
