@@ -47,16 +47,24 @@ xore find -t "toml,json"
 
 ## 文件大小过滤器 (`--size`)
 
-### 语法格式
+### 推荐语法（无需引号）
 
-| 格式 | 说明 | 示例 | 需要引号 |
-|------|------|------|---------|
-| `>SIZE` | 大于指定大小 | `">1MB"` | 是 |
-| `<SIZE` | 小于指定大小 | `"<500KB"` | 是 |
-| `=SIZE` | 等于指定大小 | `=1GB` | 否 |
-| `MIN-MAX` | 在指定范围内 | `1MB-10MB` | 否 |
+| 格式 | 说明 | 示例 |
+|------|------|------|
+| `gt:SIZE` | 大于指定大小 | `gt:1MB` |
+| `lt:SIZE` | 小于指定大小 | `lt:500KB` |
+| `eq:SIZE` | 等于指定大小 | `eq:1GB` |
+| `MIN-MAX` | 在指定范围内 | `1MB-10MB` |
 
-> **重要：** 使用 `>` 或 `<` 比较符时必须加引号，因为这些是 shell 重定向符号。
+### 兼容语法（需要引号）
+
+| 格式 | 说明 | 示例 |
+|------|------|------|
+| `>SIZE` | 大于指定大小 | `">1MB"` |
+| `<SIZE` | 小于指定大小 | `"<500KB"` |
+| `=SIZE` | 等于指定大小 | `=1GB` |
+
+> **推荐：** 使用 `gt:`/`lt:`/`eq:` 语法可以避免 shell 引号问题。
 
 ### 支持的单位
 
@@ -72,27 +80,31 @@ xore find -t "toml,json"
 支持小数值：
 
 ```bash
-xore find --size ">1.5MB"
-xore find --size "0.5GB-1.5GB"
+xore find --size gt:1.5MB
+xore find --size 0.5GB-1.5GB
 ```
 
 ### 示例
 
 ```bash
-# 大于 1MB
-xore find --size ">1MB"
+# 大于 1MB（推荐语法）
+xore find --size gt:1MB
 
 # 小于 500KB
-xore find --size "<500KB"
+xore find --size lt:500KB
 
 # 等于 1GB
-xore find --size "=1GB"
+xore find --size eq:1GB
 
 # 1MB 到 10MB 之间
-xore find --size "1MB-10MB"
+xore find --size 1MB-10MB
 
 # 大于 100MB 的日志文件
-xore find --type log --size ">100MB"
+xore find --type log --size gt:100MB
+
+# 兼容语法（需要引号）
+xore find --size ">1MB"
+xore find --size "<500KB"
 ```
 
 ---
@@ -135,7 +147,7 @@ xore find --mtime "+365d"
 xore find --mtime "2024-01-01"
 
 # 组合使用
-xore find --type log --mtime "-7d" --size ">1MB"
+xore find --type log --mtime -7d --size gt:1MB
 ```
 
 ---
@@ -145,11 +157,11 @@ xore find --type log --mtime "-7d" --size ">1MB"
 过滤器可以自由组合使用，条件之间是 AND 关系：
 
 ```bash
-# 最近 7 天修改的大型 CSV 文件
-xore find --type csv --size ">10MB" --mtime "-7d"
+# 最近 7 天修改的大型 CSV 文件（无需引号）
+xore find --type csv --size gt:10MB --mtime -7d
 
 # 超过 30 天的小型日志文件
-xore find --type log --size "<1MB" --mtime "+30d"
+xore find --type log --size lt:1MB --mtime +30d
 
 # 最近修改的代码文件（限制深度）
 xore find --type code --mtime "-1d" --max-depth 3

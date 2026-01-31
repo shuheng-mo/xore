@@ -1,10 +1,10 @@
 <div align="center">
 
-# XORE
+<img src="assets/xore.png" alt="XORE Icon" width="64" height="64" style="vertical-align: middle;"> **XORE**
 
 > **Explore the Abyss, Extract the Core** - 探索深渊，提取核心
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/shuheng-mo/xore/releases)
 [![Rust](https://img.shields.io/badge/rust-1.91+-orange.svg)](https://www.rust-lang.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -25,9 +25,6 @@
 - [快速开始](#快速开始)
   - [环境要求](#环境要求)
   - [编译安装](#编译安装)
-- [使用指南](#使用指南)
-  - [查找命令 (xore find)](#查找命令-xore-find)
-  - [处理命令 (xore process)](#处理命令-xore-process)
 - [项目结构](#项目结构)
 - [配置说明](#配置说明)
 - [开发指南](#开发指南)
@@ -181,62 +178,9 @@ yarn dev
 
 ---
 
-## 使用指南
+## 详细使用文档
 
-### 查找命令 (xore find)
-
-#### 基础搜索
-
-```bash
-# 在当前目录搜索包含 "error" 的文件
-xore find "error"
-xore f "error"  # 简写形式
-
-# 指定搜索路径
-xore f "TODO" --path ./src
-
-# 指定文件类型
-xore f "function" --type rust
-```
-
-#### 语义搜索
-
-```bash
-# 使用语义搜索查找相关代码
-xore f "数据库连接失败的处理代码" --semantic
-
-# 语义搜索日志文件
-xore f "内存泄漏相关的错误" --semantic --type log
-```
-
-### 处理命令 (xore process)
-
-#### 数据处理
-
-```bash
-# 查看数据文件概览
-xore process data.csv
-xore p data.csv  # 简写形式
-
-# 执行 SQL 查询
-xore p data.csv "SELECT * FROM self WHERE age > 30"
-
-# 数据质量检查
-xore p data.csv --quality-check
-```
-
-#### 高级用法
-
-```bash
-# 处理 JSON 文件
-xore p logs.json "SELECT timestamp, level, message FROM self WHERE level = 'ERROR'"
-
-# Parquet 文件分析
-xore p large_dataset.parquet --quality-check
-
-# 导出结果
-xore p data.csv "SELECT * FROM self LIMIT 100" > output.json
-```
+请参阅 [docs/README.md](docs/README.md) 获取完整的使用指南。
 
 ---
 
@@ -280,18 +224,21 @@ xore/
 │   │   └── tokenizer.rs  # 分词器
 │   └── Cargo.toml
 │
-├── supplementary/         # 项目文档
-│   ├── PRD_v2.md         # 产品需求文档
-│   ├── 技术设计文档.md    # 技术设计文档
-│   ├── 开发规范文档.md    # 开发规范
-│   └── 测试计划文档.md    # 测试计划
-│
 ├── Cargo.toml            # Workspace 配置
 ├── README.md             # 项目说明（中文）
 ├── README_EN.md          # 项目说明（英文）
-├── LICENSE               # MIT 许可证
+├── LICENSE               # GPL-3.0 许可证
 ├── CONTRIBUTING.md       # 贡献指南
-└── CHANGELOG.md          # 更新日志
+├── CHANGELOG.md          # 更新日志
+├── rustfmt.toml          # Rust 格式化配置
+├── .gitignore            # Git 忽略规则
+├── docs/                 # 详细文档
+│   ├── README.md         # 使用指南
+│   ├── getting-started.md # 快速入门
+│   ├── commands/         # 命令参考
+│   └── reference/        # 配置参考
+├── assets/               # 项目资源
+└── .github/              # GitHub 配置
 ```
 
 ---

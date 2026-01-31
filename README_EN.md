@@ -1,10 +1,10 @@
 <div align="center">
 
-# XORE
+<img src="assets/xore.png" alt="XORE Icon" width="64" height="64" style="vertical-align: middle;"> **XORE**
 
 > **Explore the Abyss, Extract the Core**
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/shuheng-mo/xore/releases)
 [![Rust](https://img.shields.io/badge/rust-1.91+-orange.svg)](https://www.rust-lang.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
@@ -25,9 +25,6 @@
 - [Quick Start](#quick-start)
   - [Requirements](#requirements)
   - [Build & Install](#build--install)
-- [Usage Guide](#usage-guide)
-  - [Find Command (xore find)](#find-command-xore-find)
-  - [Process Command (xore process)](#process-command-xore-process)
 - [Project Structure](#project-structure)
 - [Configuration](#configuration)
 - [Developer Guide](#developer-guide)
@@ -183,62 +180,9 @@ Open the browser at [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## Usage Guide
+## Detailed Documentation
 
-### Find Command (xore find)
-
-#### Basic Search
-
-```bash
-# Search for files containing "error" in the current directory
-xore find "error"
-xore f "error"  # shorthand
-
-# Specify search path
-xore f "TODO" --path ./src
-
-# Specify file type
-xore f "function" --type rust
-```
-
-#### Semantic Search
-
-```bash
-# Use semantic search to find relevant code
-xore f "handling database connection failures" --semantic
-
-# Semantic search through log files
-xore f "errors related to memory leaks" --semantic --type log
-```
-
-### Process Command (xore process)
-
-#### Data Processing
-
-```bash
-# Quick overview of a data file
-xore process data.csv
-xore p data.csv  # shorthand
-
-# Run a SQL query
-xore p data.csv "SELECT * FROM self WHERE age > 30"
-
-# Data quality check
-xore p data.csv --quality-check
-```
-
-#### Advanced Usage
-
-```bash
-# Process JSON files
-xore p logs.json "SELECT timestamp, level, message FROM self WHERE level = 'ERROR'"
-
-# Parquet file analysis
-xore p large_dataset.parquet --quality-check
-
-# Export results
-xore p data.csv "SELECT * FROM self LIMIT 100" > output.json
-```
+Please refer to [docs/README.md](docs/README.md) for the complete usage guide.
 
 ---
 
@@ -282,18 +226,21 @@ xore/
 │   │   └── tokenizer.rs  # Tokenizer
 │   └── Cargo.toml
 │
-├── supplementary/         # Documentation
-│   ├── PRD_v2.md         # Product requirements
-│   ├── 技术设计文档.md    # Technical design (Chinese)
-│   ├── 开发规范文档.md    # Development guidelines (Chinese)
-│   └── 测试计划文档.md    # Test plan (Chinese)
-│
 ├── Cargo.toml            # Workspace config
 ├── README.md             # Chinese README
 ├── README_EN.md          # English README (this file)
-├── LICENSE               # MIT License
+├── LICENSE               # GPL-3.0 License
 ├── CONTRIBUTING.md       # Contributing guide
-└── CHANGELOG.md          # Changelog
+├── CHANGELOG.md          # Changelog
+├── rustfmt.toml          # Rust formatting config
+├── .gitignore            # Git ignore rules
+├── docs/                 # Documentation
+│   ├── README.md         # Usage guide
+│   ├── getting-started.md # Getting started
+│   ├── commands/         # Command reference
+│   └── reference/        # Configuration reference
+├── assets/               # Project assets
+└── .github/              # GitHub configuration
 ```
 
 ---

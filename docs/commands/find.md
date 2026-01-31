@@ -58,16 +58,25 @@ xore f [OPTIONS] [QUERY]
 
 ### 文件大小 (`--size`)
 
-| 格式 | 示例 | 说明 | 需要引号 |
-|-----|------|------|---------|
-| `>SIZE` | `">1MB"` | 大于指定大小 | 是（`>` 是 shell 重定向符）|
-| `<SIZE` | `"<500KB"` | 小于指定大小 | 是（`<` 是 shell 重定向符）|
-| `=SIZE` | `=1GB` | 等于指定大小 | 否 |
-| `MIN-MAX` | `1MB-10MB` | 在指定范围内 | 否 |
+**推荐语法（无需引号）：**
+
+| 格式 | 示例 | 说明 |
+|-----|------|------|
+| `gt:SIZE` | `gt:1MB` | 大于指定大小 |
+| `lt:SIZE` | `lt:500KB` | 小于指定大小 |
+| `eq:SIZE` | `eq:1GB` | 等于指定大小 |
+| `MIN-MAX` | `1MB-10MB` | 在指定范围内 |
+
+**兼容语法（需要引号）：**
+
+| 格式 | 示例 | 说明 |
+|-----|------|------|
+| `>SIZE` | `">1MB"` | 大于（需引号，`>` 是 shell 重定向符）|
+| `<SIZE` | `"<500KB"` | 小于（需引号，`<` 是 shell 重定向符）|
 
 支持单位：`B`, `KB`, `MB`, `GB`
 
-> **提示：** 使用 `>` 或 `<` 时必须加引号，因为这些是 shell 重定向符号。范围格式 `1MB-10MB` 无需引号。
+> **提示：** 推荐使用 `gt:`/`lt:`/`eq:` 语法，无需担心 shell 引号问题。
 
 ### 修改时间 (`--mtime`)
 
@@ -110,14 +119,21 @@ xore find --type "xml,yaml,toml"
 ### 大小过滤
 
 ```bash
-# 大于 1MB 的文件
-xore find --size ">1MB"
+# 大于 1MB 的文件（推荐语法）
+xore find --size gt:1MB
 
 # 小于 500KB 的文件
-xore find --size "<500KB"
+xore find --size lt:500KB
+
+# 等于 10MB
+xore find --size eq:10MB
 
 # 1MB 到 10MB 之间
-xore find --size "1MB-10MB"
+xore find --size 1MB-10MB
+
+# 兼容语法（需要引号）
+xore find --size ">1MB"
+xore find --size "<500KB"
 ```
 
 ### 时间过滤
@@ -136,14 +152,17 @@ xore find --mtime "2024-01-01"
 ### 组合过滤
 
 ```bash
-# 最近修改的大型日志文件
-xore find --type log --size ">10MB" --mtime "-7d"
+# 最近修改的大型日志文件（无需引号）
+xore find --type log --size gt:10MB --mtime -7d
 
 # 深度限制搜索
 xore find "TODO" --type code --max-depth 3
 
 # 包含隐藏文件
 xore find --hidden --type text
+
+# 超过 30 天未修改的小型文件
+xore find --size lt:1MB --mtime +30d
 ```
 
 ### 高级选项

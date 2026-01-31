@@ -74,7 +74,3 @@ xore find --help
 xore process --help
 xore benchmark --help
 ```
-
-## 许可证
-
-MIT License

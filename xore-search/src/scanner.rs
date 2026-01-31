@@ -28,9 +28,26 @@ pub enum SizeFilter {
 
 impl SizeFilter {
     /// 解析大小过滤字符串
-    /// 支持格式：">1MB", "<500KB", "=1GB", "1MB-10MB"
+    /// 支持格式：
+    /// - 新语法（无需引号）：`gt:1MB`, `lt:500KB`, `eq:1GB`
+    /// - 旧语法（需要引号）：`">1MB"`, `"<500KB"`, `"=1GB"`
+    /// - 范围格式：`1MB-10MB`
     pub fn parse(s: &str) -> Result<Self> {
         let s = s.trim();
+
+        // 新语法：gt:1MB, lt:500KB, eq:1GB（无需 shell 引号）
+        if let Some(rest) = s.strip_prefix("gt:") {
+            let bytes = parse_size(rest.trim())?;
+            return Ok(SizeFilter::GreaterThan(bytes));
+        }
+        if let Some(rest) = s.strip_prefix("lt:") {
+            let bytes = parse_size(rest.trim())?;
+            return Ok(SizeFilter::LessThan(bytes));
+        }
+        if let Some(rest) = s.strip_prefix("eq:") {
+            let bytes = parse_size(rest.trim())?;
+            return Ok(SizeFilter::Equal(bytes));
+        }
 
         // 处理范围格式 "1MB-10MB"
         if let Some((min, max)) = s.split_once('-') {
@@ -39,7 +56,7 @@ impl SizeFilter {
             return Ok(SizeFilter::Between(min_bytes, max_bytes));
         }
 
-        // 处理比较格式
+        // 旧语法：处理比较格式（需要 shell 引号）
         if let Some(rest) = s.strip_prefix('>') {
             let bytes = parse_size(rest.trim())?;
             Ok(SizeFilter::GreaterThan(bytes))
@@ -563,6 +580,31 @@ mod tests {
                 }
                 _ => panic!("Expected Between filter"),
             }
+        }
+
+        // 新语法测试：gt:, lt:, eq:
+        #[test]
+        fn test_parse_gt_syntax() {
+            let filter = SizeFilter::parse("gt:1MB").unwrap();
+            assert!(matches!(filter, SizeFilter::GreaterThan(1048576)));
+        }
+
+        #[test]
+        fn test_parse_lt_syntax() {
+            let filter = SizeFilter::parse("lt:500KB").unwrap();
+            assert!(matches!(filter, SizeFilter::LessThan(512000)));
+        }
+
+        #[test]
+        fn test_parse_eq_syntax() {
+            let filter = SizeFilter::parse("eq:1GB").unwrap();
+            assert!(matches!(filter, SizeFilter::Equal(1073741824)));
+        }
+
+        #[test]
+        fn test_gt_syntax_with_spaces() {
+            let filter = SizeFilter::parse("gt: 2MB").unwrap();
+            assert!(matches!(filter, SizeFilter::GreaterThan(2097152)));
         }
 
         #[test]
