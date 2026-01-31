@@ -1,6 +1,6 @@
 <div align="center">
 
-<h1><img src="assets/xore.png" alt="XORE Icon" height="36" style="vertical-align: middle; margin-right: 8px;">XORE</h1>
+<h1><img src="assets/xore.png" alt="XORE Icon" height="48" style="vertical-align: middle;"> XORE</h1>
 
 > **Explore the Abyss, Extract the Core** - 探索深渊，提取核心
 
