@@ -1,24 +1,17 @@
-<div align="center">
-
-<table align="center" border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td><img src="assets/xore.png" alt="XORE Icon" height="64"></td>
-<td><h1>XORE</h1></td>
-</tr>
-</table>
-
-> **Explore the Abyss, Extract the Core**
+<div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+  <img src="assets/xore.png" alt="XORE Icon" height="64">
+  <div>
+    <h1 style="margin: 0;">XORE</h1>
+    <p style="margin: 0; color: #666; font-size: 1.1em;">Explore the Abyss, Extract the Core</p>
+  </div>
+</div>
 
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/shuheng-mo/xore/releases)
 [![Rust](https://img.shields.io/badge/rust-1.91+-orange.svg)](https://www.rust-lang.org/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-[English](README_EN.md) | [简体中文](README.md)
-
-**A local developer tool with extreme performance, deeply fusing semantic search and instant data analysis**
-
-</div>
+[A local developer tool with extreme performance, deeply fusing semantic search and instant data analysis]
 
 ---
 

@@ -1,13 +1,10 @@
-<div align="center">
-
-<table align="center" border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td><img src="assets/xore.png" alt="XORE Icon" height="64"></td>
-<td><h1>XORE</h1></td>
-</tr>
-</table>
-
-> **Explore the Abyss, Extract the Core** - 探索深渊，提取核心
+<div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+  <img src="assets/xore.png" alt="XORE Icon" height="64">
+  <div>
+    <h1 style="margin: 0;">XORE</h1>
+    <p style="margin: 0; color: #666; font-size: 1.1em;">Explore the Abyss, Extract the Core</p>
+  </div>
+</div>
 
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/shuheng-mo/xore/releases)
