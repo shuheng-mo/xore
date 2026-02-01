@@ -16,10 +16,22 @@ pub struct Config {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SearchConfig {
-    pub index_path: PathBuf,
+    /// 全局索引路径 (默认 ~/.xore/index)
+    pub global_index_path: PathBuf,
+    /// 是否使用项目级索引 (.xore/index)
+    pub use_project_index: bool,
+    /// 项目级索引路径 (相对于项目根目录)
+    pub project_index_path: PathBuf,
+    /// 并行线程数
     pub num_threads: usize,
+    /// 自动重建索引的天数
     pub auto_rebuild_days: u32,
+    /// 最大索引大小 (GB)
     pub max_index_size_gb: usize,
+    /// 单文件最大大小 (MB)，超过此大小的文件不会被索引
+    pub max_file_size_mb: usize,
+    /// Writer 缓冲区大小 (MB)
+    pub writer_buffer_mb: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -60,10 +72,14 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             search: SearchConfig {
-                index_path: PathBuf::from("~/.xore/index"),
+                global_index_path: PathBuf::from("~/.xore/index"),
+                use_project_index: true,
+                project_index_path: PathBuf::from(".xore/index"),
                 num_threads: num_cpus::get(),
                 auto_rebuild_days: 30,
                 max_index_size_gb: 10,
+                max_file_size_mb: 100,
+                writer_buffer_mb: 50,
             },
             process: ProcessConfig { lazy_execution: true, chunk_size_mb: 64, cache_size_mb: 512 },
             ai: AiConfig {

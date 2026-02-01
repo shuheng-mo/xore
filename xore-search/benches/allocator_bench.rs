@@ -142,7 +142,7 @@ fn bench_mixed_workload(c: &mut Criterion) {
             let keywords = ["fn", "struct", "impl", "use", "mod", "pub", "let", "mut"];
             for (idx, _path) in file_paths.iter().enumerate() {
                 for keyword in keywords.iter() {
-                    content_index.entry(keyword.to_string()).or_insert_with(Vec::new).push(idx);
+                    content_index.entry(keyword.to_string()).or_default().push(idx);
                 }
             }
 

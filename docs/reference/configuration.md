@@ -18,12 +18,26 @@ XORE 使用 TOML 格式的配置文件来自定义默认行为。
 # XORE 配置文件示例
 
 [search]
-# 索引存储路径
-index_path = "~/.xore/index"
+# 全局索引存储路径
+global_index_path = "~/.xore/index"
+# 是否使用项目级索引（优先于全局索引）
+use_project_index = true
+# 项目级索引路径（相对于项目根目录）
+project_index_path = ".xore/index"
 # 默认搜索线程数（0 = 自动检测）
-threads = 0
-# 自动重建索引间隔（秒）
-auto_rebuild_interval = 3600
+num_threads = 0
+# 自动重建索引间隔（天）
+auto_rebuild_days = 30
+# 最大索引大小（GB）
+max_index_size_gb = 10
+# 单文件最大大小（MB），超过不索引
+max_file_size_mb = 100
+# 索引 Writer 缓冲区大小（MB），最小 15MB
+writer_buffer_mb = 50
+# 单文件最大大小（MB），超过不索引
+max_file_size_mb = 100
+# 索引 Writer 缓冲区大小（MB）
+writer_buffer_mb = 50
 
 [process]
 # 是否使用懒加载
@@ -71,9 +85,14 @@ patterns = [
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `index_path` | String | `~/.xore/index` | 索引文件存储路径 |
-| `threads` | usize | `0` | 搜索线程数，0 表示自动检测 CPU 核心数 |
-| `auto_rebuild_interval` | u64 | `3600` | 自动重建索引的间隔（秒）|
+| `global_index_path` | String | `~/.xore/index` | 全局索引存储路径 |
+| `use_project_index` | bool | `true` | 是否使用项目级索引 |
+| `project_index_path` | String | `.xore/index` | 项目级索引路径 |
+| `num_threads` | usize | `0` | 搜索线程数，0 表示自动检测 |
+| `auto_rebuild_days` | u32 | `30` | 自动重建索引间隔（天）|
+| `max_index_size_gb` | usize | `10` | 最大索引大小（GB）|
+| `max_file_size_mb` | usize | `100` | 单文件最大大小（MB），超过不索引 |
+| `writer_buffer_mb` | usize | `50` | 索引 Writer 缓冲区大小（MB）|
 
 ### [process] 数据处理配置
 

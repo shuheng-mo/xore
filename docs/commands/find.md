@@ -15,6 +15,7 @@ xore f [OPTIONS] [QUERY]
 
 `find` 命令用于在指定目录下搜索文件。支持：
 - 文件名和内容搜索
+- **全文索引搜索**（基于 Tantivy，支持中英文）
 - 多种过滤条件（类型、大小、修改时间）
 - 并行扫描
 - .gitignore 规则遵守
@@ -40,6 +41,9 @@ xore f [OPTIONS] [QUERY]
 | `--no-ignore` | - | bool | false | 不遵守 .gitignore 规则 |
 | `--follow-links` | `-L` | bool | false | 跟随符号链接 |
 | `--threads` | `-j` | usize | 自动 | 并行线程数 |
+| `--index` | `-i` | bool | false | 启用全文索引搜索模式 |
+| `--rebuild` | - | bool | false | 强制重建索引 |
+| `--index-dir` | - | String | `.xore/index` | 指定索引目录路径 |
 | `--semantic` | - | bool | false | 启用语义搜索（开发中）|
 
 ## 过滤器语法
@@ -165,6 +169,60 @@ xore find --hidden --type text
 xore find --size lt:1MB --mtime +30d
 ```
 
+### 全文索引搜索
+
+使用 `--index` 启用基于 Tantivy 的全文索引搜索，支持中英文混合搜索。
+
+```bash
+# 启用全文索引搜索（首次使用会自动构建索引）
+xore find "error" --index
+
+# 中文关键词搜索
+xore find "错误" --index
+
+# 中英混合搜索
+xore find "error 错误" --index
+
+# 强制重建索引
+xore find "test" --index --rebuild
+
+# 指定索引目录
+xore find "config" --index --index-dir /path/to/index
+
+# 配合类型过滤
+xore find "TODO" --index --type rs
+
+# 搜索日志文件中的错误
+xore find "exception" --index --type log
+```
+
+**索引搜索特性：**
+
+- 支持中英文混合分词（基于 jieba-rs）
+  - 英文：按空格和标点分割，转小写
+  - 中文：使用 jieba `cut_for_search` 模式
+  - 自动检测 CJK 字符，按语言块分别处理
+- BM25 相关性排序
+- 结果高亮显示（匹配片段黄色粗体）
+- 自动跳过二进制文件（前 8000 字节检测）
+- 增量更新（重复路径自动覆盖）
+- 支持 `--rebuild` 强制重建索引
+
+**索引存储位置：**
+
+- 默认：`.xore/index`（项目级索引，可通过配置调整）
+- 可通过 `--index-dir` 自定义
+- 索引会持久化，再次搜索无需重建
+- 最大支持索引大小可通过配置限制
+
+**性能数据：**
+
+| 操作 | 耗时 | 说明 |
+|------|------|------|
+| 首次搜索（150 文档） | ~500ms | 含 jieba 词典加载 |
+| 后续搜索 | ~80-150ms | 使用已构建索引 |
+| 索引构建 | 391ms（3 文档）| 取决于文件数量和大小 |
+
 ### 高级选项
 
 ```bash
@@ -183,8 +241,10 @@ xore --verbose find "error"
 
 ## 输出格式
 
+### 普通扫描模式
+
 ```
-🔍 扫描文件中...
+扫描文件中...
 
    2.39 KB  ./src/main.rs
    4.40 KB  ./src/lib.rs
@@ -193,6 +253,35 @@ xore --verbose find "error"
 ✓ 找到 3 个文件 (共扫描 45 个文件, 12 个目录, 耗时 5 ms)
   总大小: 17.02 KB
   已跳过: 42 个文件 (不匹配过滤条件)
+```
+
+### 全文索引搜索模式 (`--index`)
+
+首次搜索（构建索引）：
+
+```
+📑 构建索引中...
+✓ 索引构建完成: 150 个文档 (扫描 200 个文件, 0 个错误, 耗时 2.35s)
+🔍 搜索 "error"...
+
+0.88 /path/to/error.log:1
+    This is an error message
+
+0.65 /path/to/app.rs:42
+    fn handle_error(e: Error) -> Result<()>
+
+✓ 找到 2 个匹配 (索引包含 150 个文档, 耗时 152.30ms)
+```
+
+后续搜索（使用已有索引）：
+
+```
+🔍 搜索 "错误"...
+
+0.92 /path/to/chinese.log:5
+    这是一个错误日志
+
+✓ 找到 1 个匹配 (索引包含 150 个文档, 耗时 85.20ms)
 ```
 
 ## 相关命令

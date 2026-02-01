@@ -83,6 +83,18 @@ enum Commands {
         /// 启用语义搜索
         #[arg(long)]
         semantic: bool,
+
+        /// 启用全文索引搜索模式
+        #[arg(long, short = 'i')]
+        index: bool,
+
+        /// 强制重建索引
+        #[arg(long)]
+        rebuild: bool,
+
+        /// 指定索引目录路径
+        #[arg(long)]
+        index_dir: Option<String>,
     },
 
     /// 处理数据
@@ -146,6 +158,9 @@ fn main() -> anyhow::Result<()> {
             follow_links,
             threads,
             semantic,
+            index,
+            rebuild,
+            index_dir,
         } => {
             find::execute(find::FindArgs {
                 query,
@@ -159,6 +174,9 @@ fn main() -> anyhow::Result<()> {
                 follow_links,
                 threads,
                 semantic,
+                index,
+                rebuild,
+                index_dir,
             })?;
         }
         Commands::Process { file, query, quality_check } => {

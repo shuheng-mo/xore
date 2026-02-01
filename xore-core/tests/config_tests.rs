@@ -83,10 +83,14 @@ fn test_config_serialization() {
 fn test_config_deserialization() {
     let toml_str = r#"
         [search]
-        index_path = "/tmp/index"
+        global_index_path = "/tmp/index"
+        use_project_index = false
+        project_index_path = ".xore/index"
         num_threads = 4
         auto_rebuild_days = 7
         max_index_size_gb = 5
+        max_file_size_mb = 100
+        writer_buffer_mb = 50
 
         [process]
         lazy_execution = false
@@ -117,6 +121,7 @@ fn test_config_deserialization() {
 
     assert_eq!(config.search.num_threads, 4);
     assert_eq!(config.search.auto_rebuild_days, 7);
+    assert!(!config.search.use_project_index);
     assert!(!config.process.lazy_execution);
     assert_eq!(config.process.chunk_size_mb, 32);
     assert!(!config.ai.enable_semantic);

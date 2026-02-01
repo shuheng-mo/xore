@@ -15,6 +15,7 @@ xore-ai = { path = "../xore-ai" }
 # 搜索引擎
 tantivy.workspace = true
 fst.workspace = true
+jieba-rs.workspace = true
 
 # 文件监控
 notify.workspace = true

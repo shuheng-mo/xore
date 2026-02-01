@@ -36,8 +36,14 @@ cargo install xore
 # 扫描当前目录下所有文件
 xore find
 
-# 搜索包含 "error" 的文件
+# 搜索包含 "error" 的文件（文件名匹配）
 xore find "error"
+
+# 全文索引搜索（搜索文件内容，支持中英文）
+xore find "error" --index
+
+# 中文搜索
+xore find "错误" --index
 
 # 只搜索 Rust 源文件
 xore find --type code
@@ -110,7 +116,36 @@ xore find "TODO" --type code
 xore find --type code --mtime "-7d"
 ```
 
-### 场景 4：数据质量检查
+### 场景 4：全文搜索（支持中英文）
+
+首次使用 `--index` 参数时，XORE 会自动构建全文索引：
+
+```bash
+# 首次使用（自动构建索引，首次搜索较慢）
+xore find "error" --index
+
+# 中文关键词搜索（jieba 中文分词）
+xore find "数据处理" --index
+
+# 中英混合搜索
+xore find "error 错误" --index
+
+# 强制重建索引后搜索
+xore find "config" --index --rebuild
+
+# 在代码中搜索特定函数名
+xore find "handleError" --index --type code
+
+# 搜索日志中的错误信息
+xore find "exception" --index --type log
+```
+
+**性能说明：**
+- 首次搜索需要构建索引，耗时较长（取决于文件数量）
+- 后续搜索使用已构建的索引，速度很快
+- 索引文件默认存储在 `.xore/index` 目录
+
+### 场景 5：数据质量检查
 
 ```bash
 # 检查 CSV 数据质量
