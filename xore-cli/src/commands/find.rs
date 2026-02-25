@@ -357,18 +357,44 @@ fn execute_watch_mode(args: &FindArgs, index_path: &Path) -> Result<()> {
         println!("{} 按 Ctrl+C 停止监控", "💡".yellow());
         println!();
 
-        // 启动统计报告任务（暂时简化实现）
-        let _stats_task = tokio::spawn(async {
+        // 启动统计报告任务
+        let stats_indexer = std::sync::Arc::new(indexer);
+        let stats_indexer_clone = stats_indexer.clone();
+        let stats_task = tokio::spawn(async move {
             loop {
                 tokio::time::sleep(std::time::Duration::from_secs(10)).await;
-                // 统计报告功能暂时简化，避免复杂的所有权问题
+                let stats = stats_indexer_clone.stats().await;
+                if stats.created_count > 0 || stats.modified_count > 0 || stats.deleted_count > 0 {
+                    println!(
+                        "{} 统计: 创建 {}, 修改 {}, 删除 {}, 待提交 {}",
+                        "📊".dimmed(),
+                        stats.created_count.to_string().green(),
+                        stats.modified_count.to_string().yellow(),
+                        stats.deleted_count.to_string().red(),
+                        stats.pending_changes.to_string().cyan()
+                    );
+                }
             }
         });
 
-        // 等待Ctrl+C
-        tokio::signal::ctrl_c().await?;
-        println!();
-        println!("{}", "停止监控...".yellow());
+        // 使用 tokio::select! 同时运行事件循环和监听 Ctrl+C
+        tokio::select! {
+            result = stats_indexer.run() => {
+                // 如果 run() 意外退出，报告错误
+                result?;
+            }
+            _ = tokio::signal::ctrl_c() => {
+                println!();
+                println!("{}", "停止监控...".yellow());
+            }
+        }
+
+        // 取消统计任务
+        stats_task.abort();
+
+        // 最后提交一次
+        println!("{}", "提交最后的变更...".cyan());
+        stats_indexer.commit().await?;
 
         Ok::<(), anyhow::Error>(())
     })?;

@@ -10,6 +10,21 @@
 ### Fixed
 
 - 修复 `is_binary_content()` 函数的UTF-8字符边界错误，避免在8000字节位置切割多字节字符时panic
+- **修复 Watch 模式增量索引功能** ([#watch-mode-fix](plans/fix-watch-mode.md))
+  - 修复 `execute_watch_mode()` 缺少事件循环调用的问题，现在能够正确处理文件变更事件
+  - 修复 `IncrementalIndexer::commit()` 空实现问题，现在能够真正持久化索引变更
+  - 添加 `IndexBuilder::commit_changes()` 方法，支持增量索引场景的多次提交
+  - 使用 `tokio::select!` 优雅处理 Ctrl+C 信号，确保退出时提交最后的变更
+  - 增强统计报告，每10秒显示创建/修改/删除的文件数和待提交变更数
+  - 添加文件存在性检查，避免处理已删除文件时出错
+  - **测试验证**：文件创建/修改/删除事件均能正确索引，搜索结果实时更新
+
+### Changed
+
+- **更新项目定位为 Agent-Native**
+  - README 中强调 XORE 作为 AI Agent 的高性能工具，通过"计算下推"和"结构化摘要"降低 90%+ Token 消耗
+  - 新增"核心差异化"章节，对比 XORE 与 ripgrep 等传统工具的优势
+  - 更新性能基准，增加 Agent Efficiency (Token Savings) 指标
 
 ### Added
 

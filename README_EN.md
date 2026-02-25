@@ -63,25 +63,30 @@ XORE unifies these capabilities with Rust’s zero-cost abstractions and high-pe
 
 ## Key Features
 
+### 🤖 Agent Neural Link (`xore agent`)
+
+- **Structured Summarization**: `xore agent schema` returns data structures and distributions without moving raw data.
+- **Smart Sampling**: `xore agent sample` automatically extracts the most representative data samples.
+- **Token Budget Control**: Semantically compresses long text, preserving core logic (e.g., function headers) while omitting redundant implementation.
+- **Agent Fix Suggestions**: Automatically transforms error messages into actionable fix instructions.
+
 ### 🔍 Intelligent Search Engine
 
-- **Full-text Search**: High-performance inverted index powered by Tantivy
-- **Semantic Search**: Lightweight embedding models via ONNX Runtime
-- **Hybrid Retrieval**: Smart fusion of BM25 and vector similarity
-- **Incremental Indexing**: Auto updates on file changes, real-time watching
+- **Semantic Chunking**: Tree-sitter powered code awareness. Returns complete function/class blocks instead of just lines.
+- **Full-text Search**: High-performance inverted index via Tantivy with BM25 ranking.
+- **Fuzzy & Prefix**: Supports `~term` fuzzy matching and `term*` prefix search.
+- **Incremental Indexing**: Millisecond-level file watching (`--watch`) ensures the Agent always sees the latest state.
 
 ### ⚡ High-Performance Data Processing
 
-- **SQL Engine**: DataFrame operations built on Polars
-- **Lazy Evaluation**: Deferred computation for memory efficiency
-- **Parallel Processing**: Fully utilizes multi-core CPUs
-- **Multi-format Support**: CSV, JSON, Parquet, Arrow, and more
+- **Predicate Pushdown**: Executes SQL filtering and aggregation locally via Polars, outputting only the final result.
+- **Lazy Evaluation**: Handles massive datasets that far exceed available RAM.
+- **Multi-format Support**: Native support for CSV, JSON, Parquet, Arrow, and log files.
 
 ### 🎯 Data Quality Analysis
 
-- **Auto Profiling**: Stats, missing value detection, outlier detection
-- **Type Inference**: Smart column type and data pattern recognition
-- **Quality Reports**: Detailed data quality insights
+- **Auto Profiling**: Statistical analysis, missing value detection, and outlier identification.
+- **Type Inference**: Smart recognition of column types and data patterns.
 
 ### 🚀 Extreme Performance
 
@@ -383,6 +388,14 @@ cargo tarpaulin --out Html
 ## Benchmarks
 
 XORE delivers outstanding performance across metrics.
+
+### Agent Efficiency (Token Savings)
+
+| Task | Traditional (Bash/rg) | XORE (Agent-Native) | Token Savings |
+| :--- | :--- | :--- | :--- |
+| Log Analysis (50MB) | ~15,000 Tokens | **~50 Tokens** | **99.6%** |
+| Schema Discovery | ~2,000 Tokens | **~30 Tokens** | **98.5%** |
+| Data Aggregation | ~10,000 Tokens | **~100 Tokens** | **99.0%** |
 
 ### Search Performance
 

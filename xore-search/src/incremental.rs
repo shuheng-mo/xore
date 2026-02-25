@@ -289,6 +289,12 @@ impl IncrementalIndexer {
     async fn apply_create(&self, path: PathBuf) -> Result<()> {
         debug!("Applying create: {}", path.display());
 
+        // 检查文件是否存在
+        if !path.exists() {
+            debug!("File no longer exists, skipping: {}", path.display());
+            return Ok(());
+        }
+
         // 扫描文件信息
         let file = self.scan_file(&path)?;
 
@@ -306,12 +312,19 @@ impl IncrementalIndexer {
         stats.pending_changes += 1;
         stats.last_update = Some(SystemTime::now());
 
+        info!("Indexed new file: {}", path.display());
         Ok(())
     }
 
     /// 处理文件修改
     async fn apply_modify(&self, path: PathBuf) -> Result<()> {
         debug!("Applying modify: {}", path.display());
+
+        // 检查文件是否存在
+        if !path.exists() {
+            debug!("File no longer exists, treating as delete: {}", path.display());
+            return self.apply_delete(path).await;
+        }
 
         // 先删除旧文档
         let mut builder = self.builder.lock().await;
@@ -333,6 +346,7 @@ impl IncrementalIndexer {
         stats.pending_changes += 1;
         stats.last_update = Some(SystemTime::now());
 
+        info!("Updated file in index: {}", path.display());
         Ok(())
     }
 
@@ -386,10 +400,11 @@ impl IncrementalIndexer {
 
     /// 强制提交索引
     pub async fn commit(&self) -> Result<()> {
-        let _builder = self.builder.lock().await;
-        // 注意：这里只是获取writer并commit，不会消费builder
-        // 实际的commit需要通过writer进行
         info!("Committing index changes");
+
+        // 调用 IndexBuilder 的 commit_changes 方法
+        let mut builder = self.builder.lock().await;
+        builder.commit_changes()?;
 
         // 重置待提交计数
         let mut stats = self.stats.lock().await;

@@ -290,6 +290,15 @@ impl IndexBuilder {
         Ok(())
     }
 
+    /// 提交当前的索引变更（不消费 self）
+    ///
+    /// 用于增量索引场景，需要多次提交而不重建整个索引
+    pub fn commit_changes(&mut self) -> Result<()> {
+        info!("Committing index changes");
+        self.writer.commit().with_context(|| "Failed to commit index")?;
+        Ok(())
+    }
+
     /// 提交并优化索引
     pub fn build(mut self) -> Result<IndexStats> {
         info!("Committing index...");
