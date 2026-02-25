@@ -126,7 +126,12 @@ impl<'a> XoreTokenStream<'a> {
     }
 
     /// 对中文文本进行分词
-    fn segment_cjk(text: &str, base_offset: usize, jieba: &Jieba, segments: &mut Vec<(usize, usize)>) {
+    fn segment_cjk(
+        text: &str,
+        base_offset: usize,
+        jieba: &Jieba,
+        segments: &mut Vec<(usize, usize)>,
+    ) {
         // 使用 cut_for_search 获取更细粒度的分词结果
         let words = jieba.cut_for_search(text, true);
 
@@ -205,9 +210,7 @@ fn is_cjk_char(ch: char) -> bool {
 }
 
 /// 注册 XORE 分词器到 Tantivy 的 TokenizerManager
-pub fn register_xore_tokenizer(
-    index: &tantivy::Index,
-) -> tantivy::Result<()> {
+pub fn register_xore_tokenizer(index: &tantivy::Index) -> tantivy::Result<()> {
     index.tokenizers().register("xore", XoreTokenizer::new());
     Ok(())
 }

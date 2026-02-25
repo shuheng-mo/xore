@@ -137,7 +137,7 @@ impl Default for IndexConfig {
     fn default() -> Self {
         Self {
             index_path: PathBuf::from(".xore/index"),
-            writer_buffer_size: 50_000_000, // 50MB
+            writer_buffer_size: 50_000_000,   // 50MB
             max_file_size: 100 * 1024 * 1024, // 100MB
             use_mmap: true,
             mmap_threshold: 1024 * 1024, // 1MB
@@ -164,7 +164,10 @@ impl IndexBuilder {
     /// 如果索引目录不存在，会自动创建。
     /// 如果索引已存在，会打开现有索引。
     pub fn new(index_path: &Path) -> Result<Self> {
-        Self::with_config(IndexConfig { index_path: index_path.to_path_buf(), ..Default::default() })
+        Self::with_config(IndexConfig {
+            index_path: index_path.to_path_buf(),
+            ..Default::default()
+        })
     }
 
     /// 使用自定义配置创建索引构建器
@@ -172,8 +175,9 @@ impl IndexBuilder {
         let schema = IndexSchema::new();
 
         // 创建索引目录
-        std::fs::create_dir_all(&config.index_path)
-            .with_context(|| format!("Failed to create index directory: {:?}", config.index_path))?;
+        std::fs::create_dir_all(&config.index_path).with_context(|| {
+            format!("Failed to create index directory: {:?}", config.index_path)
+        })?;
 
         // 打开或创建索引
         let index = if config.index_path.join("meta.json").exists() {
@@ -333,11 +337,10 @@ impl IndexBuilder {
 
     /// 使用内存映射读取文件
     fn read_file_mmap(&self, path: &Path) -> Result<String> {
-        let file =
-            File::open(path).with_context(|| format!("Failed to open file: {:?}", path))?;
+        let file = File::open(path).with_context(|| format!("Failed to open file: {:?}", path))?;
 
-        let mmap =
-            unsafe { Mmap::map(&file) }.with_context(|| format!("Failed to mmap file: {:?}", path))?;
+        let mmap = unsafe { Mmap::map(&file) }
+            .with_context(|| format!("Failed to mmap file: {:?}", path))?;
 
         // 尝试 UTF-8 解码
         match std::str::from_utf8(&mmap) {

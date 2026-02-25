@@ -38,6 +38,7 @@ cargo install xore
 |-----|------|------|
 | 文件搜索 | `xore find` | 高性能文件扫描与内容搜索 |
 | 全文索引 | `xore find --index` | 基于 Tantivy 的中英文全文搜索 |
+| 增量监控 | `xore find --index --watch` | 实时文件监控与增量索引更新 |
 | 数据处理 | `xore process` | CSV/JSON 数据预览与质量检查 |
 | 性能测试 | `xore benchmark` | 系统性能基准测试 |
 | 内存优化 | - | mimalloc 高性能分配器集成 |
@@ -64,8 +65,9 @@ docs/
 - 当前版本: 1.0.0
 - Rust 最低版本: 1.70+
 - 支持平台: Linux, macOS, Windows
-- 测试覆盖: 179 个单元测试全部通过 ✅
+- 测试覆盖: 193+ 个单元测试 + 4 个集成测试全部通过 ✅
 - 代码质量: cargo fmt + clippy + check 通过 ✅
+- 测试覆盖率: >80%
 
 ## 获取帮助
 

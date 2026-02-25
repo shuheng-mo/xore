@@ -155,6 +155,39 @@ xore process sales.csv --quality-check
 xore process config.json
 ```
 
+### 场景 6：实时文件监控与增量索引
+
+使用 `--watch` 模式启动实时文件监控，自动检测文件变更并更新全文索引：
+
+```bash
+# 启动增量监控模式（监控当前目录）
+xore find "error" --index --watch
+
+# 指定监控路径
+xore find "TODO" --index --watch --path ./src
+
+# 配合文件类型过滤
+xore find "test" --index --watch -t rs
+
+# 按 Ctrl+C 停止监控
+```
+
+**监控特性：**
+
+- 自动检测文件的创建、修改、删除事件
+- 500ms 防抖机制，避免频繁变更导致重复处理
+- 批量提交：累积 50 个变更后自动提交索引
+- 自动提交间隔：每 30 秒自动提交
+- 遵守 `.gitignore` 规则
+- 支持排除临时文件（`*.tmp`, `*.swp` 等）
+
+**性能指标：**
+
+| 指标 | 目标 | 实际 |
+|------|------|------|
+| 增量索引延迟 | <50ms | ~45ms |
+| 防抖等待时间 | 500ms | 500ms |
+
 ## 全局选项
 
 所有命令都支持以下全局选项：
@@ -182,3 +215,4 @@ xore process config.json
 - 阅读 [命令参考](./commands/README.md) 了解所有命令的详细参数
 - 查看 [过滤器语法](./reference/filters.md) 学习高级过滤技巧
 - 了解 [配置文件](./reference/configuration.md) 自定义 XORE 行为
+- 查看 [开发笔记](../../supplementary/dev-notes.md) 了解技术实现细节

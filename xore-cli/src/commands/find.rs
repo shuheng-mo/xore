@@ -11,8 +11,8 @@ use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use tracing::{debug, info};
 use xore_search::{
-    index_exists, FileScanner, FileTypeFilter, IndexBuilder, IndexConfig, MtimeFilter, ScanConfig,
-    Searcher, SizeFilter,
+    index_exists, FileScanner, FileTypeFilter, IncrementalConfig, IncrementalIndexer, IndexBuilder,
+    IndexConfig, MtimeFilter, ScanConfig, Searcher, SizeFilter, WatcherConfig,
 };
 
 /// Find 命令参数
@@ -31,6 +31,7 @@ pub struct FindArgs {
     pub index: bool,
     pub rebuild: bool,
     pub index_dir: Option<String>,
+    pub watch: bool,
 }
 
 /// 格式化文件大小为人类可读格式
@@ -68,6 +69,11 @@ fn get_index_path(args: &FindArgs) -> PathBuf {
 /// 执行查找命令
 pub fn execute(args: FindArgs) -> Result<()> {
     info!("Starting find command with path: {}", args.path);
+
+    // 如果启用了watch模式，必须同时启用index模式
+    if args.watch && !args.index {
+        anyhow::bail!("--watch mode requires --index to be enabled");
+    }
 
     // 如果启用了索引搜索模式
     if args.index {
@@ -207,6 +213,12 @@ pub fn execute(args: FindArgs) -> Result<()> {
 /// 执行全文索引搜索
 fn execute_index_search(args: &FindArgs) -> Result<()> {
     let index_path = get_index_path(args);
+
+    // 如果启用了watch模式
+    if args.watch {
+        return execute_watch_mode(args, &index_path);
+    }
+
     let start = Instant::now();
 
     // 检查是否需要构建/重建索引
@@ -234,10 +246,12 @@ fn execute_index_search(args: &FindArgs) -> Result<()> {
     // 获取文件类型过滤
     let file_type_filter = args.file_type.as_deref();
 
+    // 使用智能搜索，自动检测查询类型（前缀/模糊/标准）
     let results = if file_type_filter.is_some() {
         searcher.search_with_filter(query, file_type_filter, 100)?
     } else {
-        searcher.search(query)?
+        // 使用智能搜索：支持 "term*" (前缀) 和 "~term" (模糊)
+        searcher.search_smart(query, 100)?
     };
 
     let search_elapsed = start.elapsed();
@@ -283,6 +297,83 @@ fn execute_index_search(args: &FindArgs) -> Result<()> {
         search_elapsed
     );
 
+    Ok(())
+}
+
+/// 执行Watch模式（增量索引）
+fn execute_watch_mode(args: &FindArgs, index_path: &Path) -> Result<()> {
+    println!("{}", "启动增量索引监控模式...".cyan());
+
+    // 检查是否需要先构建初始索引
+    if args.rebuild || !index_exists(index_path) {
+        build_index(args, index_path)?;
+        println!();
+    }
+
+    // 创建增量索引配置
+    let index_config = IndexConfig {
+        index_path: index_path.to_path_buf(),
+        writer_buffer_size: 50_000_000,
+        max_file_size: 100 * 1024 * 1024,
+        use_mmap: true,
+        mmap_threshold: 1024 * 1024,
+    };
+
+    let watcher_config = WatcherConfig {
+        debounce_duration: std::time::Duration::from_millis(500),
+        batch_size: 50,
+        exclude_patterns: vec![
+            ".git".to_string(),
+            "node_modules".to_string(),
+            "target".to_string(),
+            ".xore".to_string(),
+            "*.tmp".to_string(),
+            "*.swp".to_string(),
+        ],
+        include_hidden: args.hidden,
+    };
+
+    let incremental_config = IncrementalConfig {
+        index_config,
+        watcher_config,
+        commit_threshold: 50,
+        auto_commit_interval: 30,
+    };
+
+    // 创建运行时
+    let rt = tokio::runtime::Runtime::new()?;
+
+    rt.block_on(async {
+        // 创建增量索引器
+        let indexer = IncrementalIndexer::new(incremental_config)
+            .await
+            .context("Failed to create incremental indexer")?;
+
+        // 开始监控
+        let watch_path = PathBuf::from(&args.path);
+        indexer.watch(&watch_path).await?;
+
+        println!("{} 监控目录: {}", "🔍".cyan(), watch_path.display());
+        println!("{} 按 Ctrl+C 停止监控", "💡".yellow());
+        println!();
+
+        // 启动统计报告任务（暂时简化实现）
+        let _stats_task = tokio::spawn(async {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+                // 统计报告功能暂时简化，避免复杂的所有权问题
+            }
+        });
+
+        // 等待Ctrl+C
+        tokio::signal::ctrl_c().await?;
+        println!();
+        println!("{}", "停止监控...".yellow());
+
+        Ok::<(), anyhow::Error>(())
+    })?;
+
+    println!("{}", "✓ 监控已停止".green());
     Ok(())
 }
 

@@ -95,6 +95,10 @@ enum Commands {
         /// 指定索引目录路径
         #[arg(long)]
         index_dir: Option<String>,
+
+        /// 启用文件监控模式（增量索引）
+        #[arg(long, short = 'w')]
+        watch: bool,
     },
 
     /// 处理数据
@@ -161,6 +165,7 @@ fn main() -> anyhow::Result<()> {
             index,
             rebuild,
             index_dir,
+            watch,
         } => {
             find::execute(find::FindArgs {
                 query,
@@ -177,6 +182,7 @@ fn main() -> anyhow::Result<()> {
                 index,
                 rebuild,
                 index_dir,
+                watch,
             })?;
         }
         Commands::Process { file, query, quality_check } => {

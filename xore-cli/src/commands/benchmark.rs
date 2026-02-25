@@ -9,7 +9,7 @@ use std::io::{Read, Write};
 use std::time::{Duration, Instant};
 
 use crate::ui::{ColorScheme, Table, ICON_PENDING, ICON_SUCCESS};
-use xore_search::{FileScanner, ScanConfig};
+use xore_search::{FileScanner, IndexBuilder, ScanConfig, Searcher};
 
 /// 基准测试套件类型
 #[derive(Debug, Clone, Copy, ValueEnum, Default)]
@@ -99,14 +99,14 @@ pub fn execute(args: BenchmarkArgs) -> Result<()> {
             results.extend(run_scan_benchmark(&path, args.iterations, args.warmup)?);
             results.extend(run_io_benchmark(&path, args.iterations, args.warmup)?);
             results.extend(run_alloc_benchmark(args.iterations)?);
-            results.extend(run_search_benchmark()?);
+            results.extend(run_search_benchmark(&path, args.iterations, args.warmup)?);
             results.extend(run_process_benchmark()?);
         }
         BenchmarkSuite::Scan => {
             results.extend(run_scan_benchmark(&path, args.iterations, args.warmup)?);
         }
         BenchmarkSuite::Search => {
-            results.extend(run_search_benchmark()?);
+            results.extend(run_search_benchmark(&path, args.iterations, args.warmup)?);
         }
         BenchmarkSuite::Process => {
             results.extend(run_process_benchmark()?);
@@ -282,14 +282,184 @@ fn run_io_benchmark(path: &str, iterations: usize, warmup: usize) -> Result<Vec<
     Ok(results)
 }
 
-/// 运行搜索基准测试（待实现）
-fn run_search_benchmark() -> Result<Vec<BenchmarkResult>> {
-    Ok(vec![BenchmarkResult {
-        name: "全文搜索".to_string(),
-        duration_ms: 0.0,
-        throughput: None,
-        status: BenchmarkStatus::Pending,
-    }])
+/// 运行搜索基准测试
+fn run_search_benchmark(
+    path: &str,
+    iterations: usize,
+    warmup: usize,
+) -> Result<Vec<BenchmarkResult>> {
+    let mut results = Vec::new();
+
+    // 1. 索引构建性能测试
+    results.push(benchmark_index_building(path, iterations, warmup)?);
+
+    // 2. 标准搜索性能测试
+    results.push(benchmark_standard_search(path, iterations)?);
+
+    // 3. 前缀搜索性能测试
+    results.push(benchmark_prefix_search(path, iterations)?);
+
+    // 4. 模糊搜索性能测试
+    results.push(benchmark_fuzzy_search(path, iterations)?);
+
+    Ok(results)
+}
+
+/// 索引构建基准测试
+fn benchmark_index_building(
+    path: &str,
+    iterations: usize,
+    warmup: usize,
+) -> Result<BenchmarkResult> {
+    let index_path = std::env::temp_dir().join("xore_bench_index");
+
+    // 预热
+    for _ in 0..warmup {
+        let _ = std::fs::remove_dir_all(&index_path);
+        let mut builder = IndexBuilder::new(&index_path)?;
+        let scanner = FileScanner::new(ScanConfig::new(path));
+        let (files, _) = scanner.scan()?;
+        builder.add_documents_batch(&files)?;
+        builder.build()?;
+    }
+
+    // 实际测试
+    let mut durations = Vec::new();
+    let mut total_size = 0u64;
+    let mut total_files = 0;
+
+    for _ in 0..iterations {
+        let _ = std::fs::remove_dir_all(&index_path);
+
+        let start = Instant::now();
+        let mut builder = IndexBuilder::new(&index_path)?;
+        let scanner = FileScanner::new(ScanConfig::new(path));
+        let (files, stats) = scanner.scan()?;
+
+        total_files = stats.matched_files;
+        total_size = files.iter().map(|f| f.size).sum();
+
+        builder.add_documents_batch(&files)?;
+        builder.build()?;
+
+        durations.push(start.elapsed());
+    }
+
+    let avg_duration = average_duration(&durations);
+    let throughput_mbs = (total_size as f64 / 1024.0 / 1024.0) / avg_duration.as_secs_f64();
+
+    Ok(BenchmarkResult {
+        name: format!(
+            "索引构建 ({} 文件, {:.2} MB)",
+            total_files,
+            total_size as f64 / 1024.0 / 1024.0
+        ),
+        duration_ms: avg_duration.as_secs_f64() * 1000.0,
+        throughput: Some(format!("{:.2} MB/s", throughput_mbs)),
+        status: BenchmarkStatus::Success,
+    })
+}
+
+/// 标准搜索基准测试
+fn benchmark_standard_search(_path: &str, iterations: usize) -> Result<BenchmarkResult> {
+    let index_path = std::env::temp_dir().join("xore_bench_index");
+    let searcher = Searcher::new(&index_path)?;
+
+    let queries = vec!["error", "warning", "config", "database", "user"];
+    let mut durations = Vec::new();
+    let mut total_results = 0;
+
+    for _ in 0..iterations {
+        for query in &queries {
+            let start = Instant::now();
+            let results = searcher.search(query)?;
+            durations.push(start.elapsed());
+            total_results += results.len();
+        }
+    }
+
+    let avg_duration = average_duration(&durations);
+    let p50 = percentile(&durations, 50);
+    let p95 = percentile(&durations, 95);
+    let p99 = percentile(&durations, 99);
+
+    Ok(BenchmarkResult {
+        name: format!("标准搜索 (平均 {} 结果)", total_results / durations.len()),
+        duration_ms: avg_duration.as_secs_f64() * 1000.0,
+        throughput: Some(format!(
+            "p50={:.1}ms, p95={:.1}ms, p99={:.1}ms",
+            p50.as_secs_f64() * 1000.0,
+            p95.as_secs_f64() * 1000.0,
+            p99.as_secs_f64() * 1000.0
+        )),
+        status: BenchmarkStatus::Success,
+    })
+}
+
+/// 前缀搜索基准测试
+fn benchmark_prefix_search(_path: &str, iterations: usize) -> Result<BenchmarkResult> {
+    let index_path = std::env::temp_dir().join("xore_bench_index");
+    let searcher = Searcher::new(&index_path)?;
+
+    let queries = vec!["err", "warn", "conf", "data", "use"];
+    let mut durations = Vec::new();
+
+    for _ in 0..iterations {
+        for query in &queries {
+            let start = Instant::now();
+            let _ = searcher.search_prefix(query, 100)?;
+            durations.push(start.elapsed());
+        }
+    }
+
+    let avg_duration = average_duration(&durations);
+    let p99 = percentile(&durations, 99);
+
+    Ok(BenchmarkResult {
+        name: "前缀搜索".to_string(),
+        duration_ms: avg_duration.as_secs_f64() * 1000.0,
+        throughput: Some(format!("p99={:.1}ms", p99.as_secs_f64() * 1000.0)),
+        status: BenchmarkStatus::Success,
+    })
+}
+
+/// 模糊搜索基准测试
+fn benchmark_fuzzy_search(_path: &str, iterations: usize) -> Result<BenchmarkResult> {
+    let index_path = std::env::temp_dir().join("xore_bench_index");
+    let searcher = Searcher::new(&index_path)?;
+
+    // 故意拼写错误的查询
+    let queries = vec!["eror", "warining", "confg", "databse", "usr"];
+    let mut durations = Vec::new();
+
+    for _ in 0..iterations {
+        for query in &queries {
+            let start = Instant::now();
+            let _ = searcher.search_fuzzy(query, 100)?;
+            durations.push(start.elapsed());
+        }
+    }
+
+    let avg_duration = average_duration(&durations);
+    let p99 = percentile(&durations, 99);
+
+    Ok(BenchmarkResult {
+        name: "模糊搜索".to_string(),
+        duration_ms: avg_duration.as_secs_f64() * 1000.0,
+        throughput: Some(format!("p99={:.1}ms", p99.as_secs_f64() * 1000.0)),
+        status: BenchmarkStatus::Success,
+    })
+}
+
+/// 计算百分位数
+fn percentile(durations: &[Duration], p: usize) -> Duration {
+    if durations.is_empty() {
+        return Duration::ZERO;
+    }
+    let mut sorted = durations.to_vec();
+    sorted.sort();
+    let index = (sorted.len() * p / 100).min(sorted.len() - 1);
+    sorted[index]
 }
 
 /// 运行数据处理基准测试（待实现）

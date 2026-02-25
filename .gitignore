@@ -52,5 +52,9 @@ temp/
 # 本地脚本（不上传到 GitHub）
 scripts/
 
-#
+# dev data to ignore
 supplementary/*
+AGENTS.md
+.opencodeignore
+plans/*
+examples/benchmark-data/large/*

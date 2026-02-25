@@ -34,10 +34,6 @@ max_index_size_gb = 10
 max_file_size_mb = 100
 # 索引 Writer 缓冲区大小（MB），最小 15MB
 writer_buffer_mb = 50
-# 单文件最大大小（MB），超过不索引
-max_file_size_mb = 100
-# 索引 Writer 缓冲区大小（MB）
-writer_buffer_mb = 50
 
 [process]
 # 是否使用懒加载
