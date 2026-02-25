@@ -7,7 +7,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- 修复 `is_binary_content()` 函数的UTF-8字符边界错误，避免在8000字节位置切割多字节字符时panic
+
 ### Added
+
 - 初始项目脚手架
 - 基础CLI框架
 - 核心模块结构
@@ -15,6 +20,7 @@
 ## [1.0.0] - TBD
 
 ### Added
+
 - 全文搜索功能（基于Tantivy）
 - 语义搜索功能（基于ONNX）
 - 增量索引支持
@@ -24,6 +30,7 @@
 - 命令行界面
 
 ### Performance
+
 - SIMD优化CSV解析
 - 零拷贝数据管道
 - 并发索引构建

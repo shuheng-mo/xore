@@ -387,8 +387,9 @@ pub struct IndexStats {
 /// 检测内容是否为二进制
 fn is_binary_content(content: &str) -> bool {
     // 检查前 8000 字节中是否有 null 字符
+    // 使用字节切片避免UTF-8字符边界问题
     let check_len = content.len().min(8000);
-    content[..check_len].contains('\0')
+    content.as_bytes()[..check_len].contains(&b'\0')
 }
 
 /// 检测文件类型
