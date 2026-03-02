@@ -94,9 +94,22 @@ patterns = [
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `lazy` | bool | `true` | 是否启用懒加载模式 |
+| `lazy` | bool | `true` | 是否启用懒加载模式（LazyFrame）|
 | `chunk_size` | usize | `65536` | 数据处理块大小（字节）|
 | `cache_size_mb` | usize | `256` | 内存缓存大小（MB）|
+| `use_mmap` | bool | `true` | 是否启用内存映射（零拷贝读取）|
+| `mmap_threshold` | u64 | `1048576` | 内存映射阈值（字节，默认 1MB）|
+| `csv_delimiter` | char | `','` | CSV 分隔符 |
+| `infer_schema` | bool | `true` | 是否自动推断 Schema |
+| `infer_schema_length` | usize | `1000` | Schema 推断时扫描的行数（0 = 全部）|
+| `has_header` | bool | `true` | CSV 文件是否有表头 |
+
+**ParserConfig 详解：**
+
+- **`use_mmap`**: 启用后，文件大小超过 `mmap_threshold` 时自动使用 `memmap2` 进行零拷贝读取，显著提升大文件性能。
+- **`mmap_threshold`**: 默认 1MB（1048576 字节）。小于此阈值的文件使用标准文件读取，大于此阈值使用内存映射。
+- **`infer_schema_length`**: 控制 Schema 推断的精度。值越大推断越准确，但首次读取越慢。设为 `None` 或 `0` 扫描全部数据。
+- **`lazy`**: 启用 LazyFrame 模式，延迟执行查询计划，优化内存占用，适合处理超大数据集。
 
 ### [ai] AI 配置
 
@@ -128,6 +141,7 @@ patterns = [
 | `patterns` | Array | 见下文 | 全局排除的 glob 模式 |
 
 默认排除模式：
+
 ```toml
 patterns = [
     "**/node_modules/**",

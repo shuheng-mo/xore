@@ -1,6 +1,6 @@
 # process 命令
 
-数据处理与分析命令。
+数据处理与分析命令，基于 **Polars** 高性能数据引擎。
 
 **别名:** `p`
 
@@ -13,10 +13,13 @@ xore p [OPTIONS] <FILE> [QUERY]
 
 ## 描述
 
-`process` 命令用于处理和分析数据文件。支持：
-- 数据预览（表格格式显示）
-- 数据质量检查
-- SQL 查询（开发中）
+`process` 命令用于处理和分析数据文件，采用 Polars 引擎提供高性能数据处理能力。支持：
+
+- **数据预览**：表格格式显示前 10 行数据
+- **数据质量检查**：缺失值、重复行、列统计、离群值检测
+- **SQL 查询**：基于 Polars SQL 引擎（开发中）
+- **零拷贝读取**：大文件（>1MB）自动使用 `memmap2` 内存映射
+- **惰性求值**：`LazyFrame` 模式优化内存占用，支持超大数据集
 
 ## 参数
 
@@ -39,16 +42,25 @@ xore p [OPTIONS] <FILE> [QUERY]
 |-----|-------|-----|---------|---------|
 | CSV | .csv | ✅ | ✅ | 🔄 开发中 |
 | JSON | .json | ✅ | ✅ | 🔄 开发中 |
-| Parquet | .parquet | 🔄 开发中 | 🔄 开发中 | 🔄 开发中 |
+| Parquet | .parquet | ✅ | ✅ | 🔄 开发中 |
+
+**性能特性：**
+
+- CSV/Parquet 文件 >1MB 自动启用零拷贝内存映射（`memmap2`）
+- 自动 Schema 推断（默认扫描前 1000 行）
+- LazyFrame 惰性执行，延迟计算优化内存
 
 ## 使用示例
 
 ### 数据预览
 
 ```bash
-# 预览 CSV 文件
+# 预览 CSV 文件（显示前 10 行）
 xore process data.csv
 xore p data.csv
+
+# 预览 Parquet 文件
+xore p data.parquet
 
 # 预览 JSON 文件
 xore p config.json
@@ -61,6 +73,9 @@ xore p config.json
 xore process data.csv --quality-check
 xore p sales.csv --quality-check
 
+# 检查 Parquet 数据质量
+xore p metrics.parquet --quality-check
+
 # 检查 JSON 数据质量
 xore p users.json --quality-check
 ```
@@ -68,11 +83,13 @@ xore p users.json --quality-check
 ### SQL 查询（开发中）
 
 ```bash
-# 基本查询
+# 基本查询（即将支持）
 xore p data.csv "SELECT * FROM self WHERE age > 30"
 
-# 聚合查询
+# 聚合查询（即将支持）
 xore p sales.csv "SELECT region, SUM(revenue) FROM self GROUP BY region"
+
+# 注：当前版本输出模拟提示，Polars SQL 引擎集成中
 ```
 
 ## 输出示例
@@ -139,13 +156,27 @@ server.timeout    | 30
 
 ## 质量检查项
 
-| 检查项 | 说明 |
-|-------|------|
-| 行数统计 | 总行数 |
-| 列数统计 | 总列数 |
-| 缺失值检测 | 按列统计空值比例 |
-| 重复行检测 | 完全相同的行数 |
-| 格式一致性 | JSON 结构异常检测 |
+### CSV/Parquet 质量检查（基于 Polars）
+
+| 检查项 | 说明 | 实现状态 |
+|-------|------|---------|
+| 行数统计 | 总行数 | ✅ |
+| 列数统计 | 总列数 | ✅ |
+| 数据类型 | 自动推断的列类型 | ✅ |
+| 缺失值检测 | 按列统计空值数量和百分比 | ✅ |
+| 重复行检测 | 完全相同的行数（使用 Polars `is_duplicated`）| ✅ |
+| 列统计信息 | 唯一值数量、缺失值百分比 | ✅（API 可用）|
+| 离群值检测 | IQR 方法检测数值列异常值 | ✅（API 可用）|
+
+### JSON 质量检查
+
+| 检查项 | 说明 | 实现状态 |
+|-------|------|---------|
+| 格式一致性 | JSON 结构异常检测 | ✅ |
+| 字段统计 | 对象字段数量、数组元素数量 | ✅ |
+| 结构验证 | 数组元素字段一致性检查 | ✅ |
+
+**注：** CLI 当前输出缺失值和重复行统计，更多统计项可通过 API 调用 `DataProfiler` 获取。
 
 ## 相关命令
 

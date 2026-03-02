@@ -58,15 +58,24 @@ xore find --mtime "-7d"
 ### 2. 数据处理
 
 ```bash
-# 预览 CSV 文件
+# 预览 CSV 文件（显示前 10 行）
 xore process data.csv
 
-# 检查数据质量
+# 预览 Parquet 文件
+xore process data.parquet
+
+# 检查数据质量（缺失值、重复行检测）
 xore process data.csv --quality-check
 
 # 执行 SQL 查询（开发中）
 xore process data.csv "SELECT * FROM self WHERE age > 30"
 ```
+
+**性能说明：**
+
+- 大文件（>1MB）自动使用零拷贝内存映射（`memmap2`）
+- LazyFrame 惰性执行，优化内存占用
+- 自动 Schema 推断（默认扫描前 1000 行）
 
 ### 3. 性能测试
 
@@ -141,6 +150,7 @@ xore find "exception" --index --type log
 ```
 
 **性能说明：**
+
 - 首次搜索需要构建索引，耗时较长（取决于文件数量）
 - 后续搜索使用已构建的索引，速度很快
 - 索引文件默认存储在 `.xore/index` 目录
@@ -151,8 +161,31 @@ xore find "exception" --index --type log
 # 检查 CSV 数据质量
 xore process sales.csv --quality-check
 
+# 检查 Parquet 数据质量
+xore process metrics.parquet --quality-check
+
 # 预览 JSON 数据结构
 xore process config.json
+```
+
+**质量检查输出示例：**
+
+```
+🔍 数据质量检查: sales.csv
+
+基本信息
+  ✓ 总行数: 10,000
+  ✓ 总列数: 5
+
+发现的问题
+  ⚠ 发现 2 列存在缺失值
+    - email: 3.2% 缺失 (320 行)
+    - phone: 1.5% 缺失 (150 行)
+  ⚠ 检测到 25 行重复数据
+
+建议
+  💡 考虑去除重复行以减少数据冗余
+  💡 检查数据源，确保必填字段有值
 ```
 
 ### 场景 6：实时文件监控与增量索引

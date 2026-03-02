@@ -5,10 +5,9 @@
 use anyhow::{Context, Result};
 use colored::*;
 use std::path::Path;
+use xore_process::{DataParser, DataProfiler};
 
-use crate::ui::{
-    Alignment, ColorScheme, Column, Table, TableStyle, ICON_SUCCESS, ICON_TIP, ICON_WARNING,
-};
+use crate::ui::{Alignment, Column, Table, TableStyle, ICON_SUCCESS, ICON_TIP, ICON_WARNING};
 
 /// 执行数据处理命令
 pub fn execute(file: &str, query: Option<&str>, quality_check: bool) -> Result<()> {
@@ -23,26 +22,23 @@ pub fn execute(file: &str, query: Option<&str>, quality_check: bool) -> Result<(
 
     // 根据模式执行不同操作
     if quality_check {
-        run_quality_check(file, &extension)?;
+        run_quality_check(path, &extension)?;
     } else if let Some(sql) = query {
-        run_sql_query(file, sql, &extension)?;
+        run_sql_query(path, sql, &extension)?;
     } else {
-        run_data_preview(file, &extension)?;
+        run_data_preview(path, &extension)?;
     }
 
     Ok(())
 }
 
-/// 数据预览
-fn run_data_preview(file: &str, extension: &str) -> Result<()> {
-    println!("{} {} {}\n", "📄".cyan(), "数据预览:".bold(), file.yellow());
+/// 数据预览（使用 Polars）
+fn run_data_preview(path: &Path, extension: &str) -> Result<()> {
+    println!("{} {} {}\n", "📄".cyan(), "数据预览:".bold(), path.display().to_string().yellow());
 
     match extension {
-        "csv" => preview_csv(file)?,
-        "json" => preview_json(file)?,
-        "parquet" => {
-            println!("{}", "Parquet 预览功能即将推出...".yellow());
-        }
+        "csv" | "parquet" => preview_with_polars(path)?,
+        "json" => preview_json(path)?,
         _ => {
             println!("{}", format!("不支持的文件格式: {}", extension).red());
             println!("{}", "支持的格式: csv, json, parquet".dimmed());
@@ -52,33 +48,40 @@ fn run_data_preview(file: &str, extension: &str) -> Result<()> {
     Ok(())
 }
 
-/// 预览 CSV 文件
-fn preview_csv(file: &str) -> Result<()> {
-    let content =
-        std::fs::read_to_string(file).with_context(|| format!("无法读取文件: {}", file))?;
+/// 使用 Polars 预览数据
+fn preview_with_polars(path: &Path) -> Result<()> {
+    let parser = DataParser::new();
 
-    let mut lines = content.lines();
-    let headers: Vec<&str> = match lines.next() {
-        Some(header_line) => header_line.split(',').map(|s| s.trim()).collect(),
-        None => {
-            println!("{}", "文件为空".yellow());
-            return Ok(());
-        }
-    };
+    // 读取数据
+    let df = parser.read(path).with_context(|| format!("无法读取文件: {:?}", path))?;
+
+    let total_rows = df.height();
+    let total_cols = df.width();
+
+    // 获取前 10 行
+    let preview_df = df.head(Some(10));
 
     // 创建表格
-    let columns: Vec<Column> = headers.iter().map(|h| Column::new(h)).collect();
+    let column_names = preview_df.get_column_names();
+    let columns: Vec<Column> = column_names.iter().map(|name| Column::new(name)).collect();
 
     let mut table = Table::new(columns).with_style(TableStyle::Simple);
 
-    // 添加前10行数据
-    let mut row_count = 0;
-    let total_rows: usize = content.lines().count().saturating_sub(1);
+    // 添加数据行
+    for row_idx in 0..preview_df.height() {
+        let row_data: Vec<String> = column_names
+            .iter()
+            .map(|col_name| {
+                preview_df
+                    .column(col_name)
+                    .ok()
+                    .and_then(|series| series.get(row_idx).ok())
+                    .map(|val| format_anyvalue(&val))
+                    .unwrap_or_else(|| "null".to_string())
+            })
+            .collect();
 
-    for line in lines.take(10) {
-        let cells: Vec<&str> = line.split(',').map(|s| s.trim()).collect();
-        table.add_row(cells);
-        row_count += 1;
+        table.add_row(row_data);
     }
 
     // 渲染表格
@@ -86,18 +89,47 @@ fn preview_csv(file: &str) -> Result<()> {
 
     // 显示统计信息
     println!(
-        "\n显示前 {} 行 (共 {} 行)",
-        row_count.to_string().cyan(),
-        total_rows.to_string().cyan()
+        "\n显示前 {} 行 (共 {} 行, {} 列)",
+        preview_df.height().to_string().cyan(),
+        total_rows.to_string().cyan(),
+        total_cols.to_string().cyan()
     );
 
     Ok(())
 }
 
-/// 预览 JSON 文件
-fn preview_json(file: &str) -> Result<()> {
+/// 格式化 Polars AnyValue 为字符串
+fn format_anyvalue(val: &xore_process::AnyValue) -> String {
+    use xore_process::AnyValue;
+
+    match val {
+        AnyValue::Null => "null".dimmed().to_string(),
+        AnyValue::Boolean(b) => b.to_string(),
+        AnyValue::String(s) => {
+            if s.len() > 50 {
+                format!("{}...", &s[..47])
+            } else {
+                s.to_string()
+            }
+        }
+        AnyValue::UInt8(n) => n.to_string(),
+        AnyValue::UInt16(n) => n.to_string(),
+        AnyValue::UInt32(n) => n.to_string(),
+        AnyValue::UInt64(n) => n.to_string(),
+        AnyValue::Int8(n) => n.to_string(),
+        AnyValue::Int16(n) => n.to_string(),
+        AnyValue::Int32(n) => n.to_string(),
+        AnyValue::Int64(n) => n.to_string(),
+        AnyValue::Float32(n) => format!("{:.2}", n),
+        AnyValue::Float64(n) => format!("{:.2}", n),
+        _ => format!("{:?}", val),
+    }
+}
+
+/// 预览 JSON 文件（保留原有实现）
+fn preview_json(path: &Path) -> Result<()> {
     let content =
-        std::fs::read_to_string(file).with_context(|| format!("无法读取文件: {}", file))?;
+        std::fs::read_to_string(path).with_context(|| format!("无法读取文件: {:?}", path))?;
 
     // 尝试解析 JSON
     let value: serde_json::Value =
@@ -180,14 +212,14 @@ fn format_json_value(value: &serde_json::Value) -> String {
 }
 
 /// SQL 查询
-fn run_sql_query(file: &str, sql: &str, extension: &str) -> Result<()> {
+fn run_sql_query(path: &Path, sql: &str, extension: &str) -> Result<()> {
     println!("{}", "⚙️  执行 SQL 查询...".cyan());
-    println!("文件: {}", file.yellow());
+    println!("文件: {}", path.display().to_string().yellow());
     println!("查询: {}\n", sql.dimmed());
 
     match extension {
         "csv" | "parquet" => {
-            // TODO: 实现实际的 SQL 查询 (使用 xore-process / Polars)
+            // TODO: 实现实际的 SQL 查询 (Day 17-18)
             println!("{}", "SQL 查询功能即将推出，将使用 Polars SQL 引擎".yellow());
             println!("\n示例输出:");
 
@@ -214,107 +246,64 @@ fn run_sql_query(file: &str, sql: &str, extension: &str) -> Result<()> {
     Ok(())
 }
 
-/// 数据质量检查
-fn run_quality_check(file: &str, extension: &str) -> Result<()> {
-    println!("{} {} {}\n", "🔍".cyan(), "数据质量检查:".bold(), file.yellow());
+/// 数据质量检查（使用 Polars）
+fn run_quality_check(path: &Path, extension: &str) -> Result<()> {
+    println!(
+        "{} {} {}\n",
+        "🔍".cyan(),
+        "数据质量检查:".bold(),
+        path.display().to_string().yellow()
+    );
 
     match extension {
-        "csv" => quality_check_csv(file)?,
-        "json" => quality_check_json(file)?,
+        "csv" | "parquet" => quality_check_with_polars(path)?,
+        "json" => quality_check_json(path)?,
         _ => {
             println!("{}", format!("质量检查不支持 {} 格式", extension).red());
-            println!("{}", "支持的格式: csv, json".dimmed());
+            println!("{}", "支持的格式: csv, json, parquet".dimmed());
         }
     }
 
     Ok(())
 }
 
-/// CSV 文件质量检查
-fn quality_check_csv(file: &str) -> Result<()> {
-    let content =
-        std::fs::read_to_string(file).with_context(|| format!("无法读取文件: {}", file))?;
+/// 使用 Polars 进行质量检查
+fn quality_check_with_polars(path: &Path) -> Result<()> {
+    let parser = DataParser::new();
+    let profiler = DataProfiler::new();
 
-    let lines: Vec<&str> = content.lines().collect();
-    if lines.is_empty() {
-        println!("{}", "文件为空".yellow());
-        return Ok(());
-    }
+    // 读取数据
+    let df = parser.read(path).with_context(|| format!("无法读取文件: {:?}", path))?;
 
-    let headers: Vec<&str> = lines[0].split(',').map(|s| s.trim()).collect();
-    let total_rows = lines.len() - 1;
-    let total_cols = headers.len();
+    // 生成质量报告
+    let report = profiler.profile(&df).with_context(|| "生成质量报告失败")?;
 
     // 基本信息
     println!("{}", "基本信息".bold());
-    println!("  {} 总行数: {}", ICON_SUCCESS.green(), total_rows.to_string().cyan());
-    println!("  {} 总列数: {}", ICON_SUCCESS.green(), total_cols.to_string().cyan());
-
-    // 分析每列
-    let mut missing_cols: Vec<(String, f64)> = Vec::new();
-    let mut inconsistent_rows = 0;
-
-    for (row_idx, line) in lines.iter().skip(1).enumerate() {
-        let cells: Vec<&str> = line.split(',').collect();
-        if cells.len() != total_cols {
-            inconsistent_rows += 1;
-        }
-
-        for (col_idx, cell) in cells.iter().enumerate() {
-            if col_idx < headers.len() && cell.trim().is_empty() {
-                let col_name = headers[col_idx].to_string();
-                if let Some(entry) = missing_cols.iter_mut().find(|(n, _)| n == &col_name) {
-                    entry.1 += 1.0;
-                } else {
-                    missing_cols.push((col_name, 1.0));
-                }
-            }
-        }
-    }
-
-    // 检测重复行
-    let mut seen = std::collections::HashSet::new();
-    let mut duplicates = 0;
-    for line in lines.iter().skip(1) {
-        if !seen.insert(line) {
-            duplicates += 1;
-        }
-    }
+    println!("  {} 总行数: {}", ICON_SUCCESS.green(), report.total_rows.to_string().cyan());
+    println!("  {} 总列数: {}", ICON_SUCCESS.green(), report.total_columns.to_string().cyan());
 
     // 发现的问题
     println!("\n{}", "发现的问题".bold());
 
     let mut has_issues = false;
 
-    if !missing_cols.is_empty() {
+    // 缺失值
+    if !report.missing_values.is_empty() {
         has_issues = true;
-        let cols_with_missing: Vec<_> =
-            missing_cols.iter().filter(|(_, count)| *count > 0.0).collect();
-
-        if !cols_with_missing.is_empty() {
-            println!("  {} 发现 {} 列存在缺失值", ICON_WARNING.yellow(), cols_with_missing.len());
-            for (name, count) in cols_with_missing.iter().take(5) {
-                let percent = (*count / total_rows as f64) * 100.0;
-                println!("    - {}: {:.1}% 缺失", name.cyan(), percent);
-            }
+        println!("  {} 发现 {} 列存在缺失值", ICON_WARNING.yellow(), report.missing_values.len());
+        for (name, stats) in report.missing_values.iter().take(5) {
+            println!("    - {}: {:.1}% 缺失 ({} 行)", name.cyan(), stats.percentage, stats.count);
         }
     }
 
-    if duplicates > 0 {
+    // 重复行
+    if report.duplicate_rows > 0 {
         has_issues = true;
         println!(
             "  {} 检测到 {} 行重复数据",
             ICON_WARNING.yellow(),
-            duplicates.to_string().yellow()
-        );
-    }
-
-    if inconsistent_rows > 0 {
-        has_issues = true;
-        println!(
-            "  {} 发现 {} 行列数不一致",
-            ICON_WARNING.yellow(),
-            inconsistent_rows.to_string().yellow()
+            report.duplicate_rows.to_string().yellow()
         );
     }
 
@@ -324,10 +313,10 @@ fn quality_check_csv(file: &str) -> Result<()> {
 
     // 建议
     println!("\n{}", "建议".bold());
-    if duplicates > 0 {
-        println!("  {} 运行 'xore p {} --deduplicate' 去除重复行", ICON_TIP, file);
+    if report.duplicate_rows > 0 {
+        println!("  {} 考虑去除重复行以减少数据冗余", ICON_TIP);
     }
-    if !missing_cols.is_empty() {
+    if !report.missing_values.is_empty() {
         println!("  {} 检查数据源，确保必填字段有值", ICON_TIP);
     }
     if !has_issues {
@@ -337,10 +326,10 @@ fn quality_check_csv(file: &str) -> Result<()> {
     Ok(())
 }
 
-/// JSON 文件质量检查
-fn quality_check_json(file: &str) -> Result<()> {
+/// JSON 文件质量检查（保留原有实现）
+fn quality_check_json(path: &Path) -> Result<()> {
     let content =
-        std::fs::read_to_string(file).with_context(|| format!("无法读取文件: {}", file))?;
+        std::fs::read_to_string(path).with_context(|| format!("无法读取文件: {:?}", path))?;
 
     let value: serde_json::Value =
         serde_json::from_str(&content).with_context(|| "无效的 JSON 格式")?;

@@ -5,7 +5,7 @@ XORE 提供以下命令：
 | 命令 | 别名 | 说明 |
 |-----|------|------|
 | [find](./find.md) | `f` | 文件搜索与扫描 |
-| [process](./process.md) | `p` | 数据处理与分析 |
+| [process](./process.md) | `p` | 数据处理与分析（CSV/JSON/Parquet，基于 Polars）|
 | [benchmark](./benchmark.md) | `bench` | 性能基准测试 |
 
 ## 全局选项

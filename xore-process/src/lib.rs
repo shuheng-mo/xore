@@ -7,9 +7,13 @@ pub mod parser;
 pub mod profiler;
 pub mod sql;
 
-pub use parser::DataParser;
-pub use profiler::DataProfiler;
+// 导出主要类型
+pub use parser::{DataParser, ParserConfig};
+pub use profiler::{ColumnStats, DataProfiler, MissingStats, QualityReport};
 pub use sql::SqlEngine;
+
+// 重新导出 Polars 类型，方便使用
+pub use polars::prelude::{AnyValue, DataFrame, LazyFrame};
 
 #[cfg(test)]
 mod tests {
