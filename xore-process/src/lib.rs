@@ -9,7 +9,10 @@ pub mod sql;
 
 // 导出主要类型
 pub use parser::{DataParser, ParserConfig};
-pub use profiler::{ColumnStats, DataProfiler, MissingStats, QualityReport};
+pub use profiler::{
+    ColumnStats, DataProfiler, MissingStats, OutlierInfo, QualityReport, Severity, Suggestion,
+    SuggestionType,
+};
 pub use sql::SqlEngine;
 
 // 重新导出 Polars 类型，方便使用

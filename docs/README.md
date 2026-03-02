@@ -40,6 +40,7 @@ cargo install xore
 | 全文索引 | `xore find --index` | 基于 Tantivy 的中英文全文搜索 |
 | 增量监控 | `xore find --index --watch` | 实时文件监控与增量索引更新 |
 | 数据处理 | `xore process` | CSV/JSON/Parquet 数据预览与质量检查 |
+| **SQL 查询** | `xore process <file> "<sql>"` | **基于 Polars SQL 引擎的完整 SQL 支持** ✅ |
 | Polars 引擎 | `xore process` | 零拷贝读取、LazyFrame 惰性求值 |
 | 数据质量分析 | `xore process --quality-check` | 缺失值、重复行、离群值检测 |
 | 性能测试 | `xore benchmark` | 系统性能基准测试 |
@@ -67,10 +68,37 @@ docs/
 - 当前版本: 1.0.0
 - Rust 最低版本: 1.70+
 - 支持平台: Linux, macOS, Windows
-- 测试覆盖: 206+ 个单元测试 + 4 个集成测试全部通过 ✅
+- 测试覆盖: 215+ 个单元测试 + 4 个集成测试全部通过 ✅
 - 代码质量: cargo fmt + clippy + check 通过 ✅
 - 测试覆盖率: >80%
 - **Agent-Native 定位**：通过计算下推和结构化摘要降低 90%+ Token 消耗
+
+## 最新功能 (Day 17-18)
+
+### SQL 查询引擎 ✅
+
+基于 Polars `SQLContext` 的完整 SQL 支持，让数据分析更加灵活：
+
+```bash
+# 基本查询
+xore p sales.csv "SELECT * FROM sales WHERE price > 100"
+
+# 聚合分析
+xore p sales.csv "SELECT category, SUM(price * quantity) as revenue
+                  FROM sales GROUP BY category ORDER BY revenue DESC"
+
+# 多表 JOIN
+xore p users.csv "SELECT users.name, SUM(orders.amount) as total
+                  FROM users INNER JOIN orders ON users.id = orders.user_id
+                  GROUP BY users.name"
+```
+
+**支持的 SQL 功能：**
+
+- ✅ SELECT, WHERE, GROUP BY, ORDER BY, LIMIT
+- ✅ 聚合函数：COUNT, SUM, AVG, MIN, MAX
+- ✅ 多表 JOIN：INNER JOIN, LEFT JOIN
+- ✅ 复杂表达式和子查询
 
 ## 获取帮助
 

@@ -28,7 +28,35 @@
 
 ### Added
 
-- **Day 15: Polars 数据处理引擎集成** ([#day15](plans/day15-plan.md))
+- **Day 19: 数据质量检测增强**
+  - 扩展 `QualityReport` 结构，增加智能建议和离群值信息
+  - 实现智能建议生成系统：
+    - 基于缺失值比例自动生成处理建议（Error/Warning/Info 三级严重程度）
+    - 基于重复行数生成去重建议
+    - 基于离群值检测生成数据异常提示
+  - 优化离群值检测算法：
+    - 支持批量检测所有数值列的离群值
+    - 使用 IQR 方法（四分位距）检测异常值
+    - 自动过滤非数值列，避免类型错误
+  - 完善 CLI 输出格式：
+    - 彩色高亮显示不同严重程度的问题（红色/黄色/正常）
+    - 按严重程度排序显示建议（Error > Warning > Info）
+    - 增加离群值检测结果展示
+  - **测试覆盖**：新增 5 个单元测试，总计 9 个测试全部通过
+
+- **Day 17-18: SQL 查询引擎实现** ([#day17-18](plans/day17-18-plan.md))
+  - 实现基于 Polars `SQLContext` 的 SQL 查询引擎
+  - 支持完整的 SQL 查询功能：
+    - 基本查询：`SELECT`, `WHERE`, `ORDER BY`, `LIMIT`
+    - 聚合查询：`GROUP BY`, `COUNT`, `SUM`, `AVG`, `MIN`, `MAX`
+    - 多表查询：`INNER JOIN`, `LEFT JOIN`
+  - CLI 集成：`xore p <file> "<sql>"` 命令支持
+  - 自动表注册：使用文件名作为表名
+  - 结果渲染：表格化输出，最多显示 100 行
+  - **测试覆盖**：9 个单元测试全部通过
+  - **性能优化**：LazyFrame 延迟执行 + 零拷贝读取
+
+- **Day 15-16: Polars 数据处理引擎集成** ([#day15](plans/day15-plan.md))
   - 实现 `DataParser` 模块，支持 CSV 和 Parquet 文件的高性能读取
   - 集成 `memmap2` 实现零拷贝读取，支持 GB 级大文件（阈值 1MB）
   - 实现 `LazyFrame` 模式，延迟执行优化内存占用

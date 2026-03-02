@@ -17,7 +17,7 @@ xore p [OPTIONS] <FILE> [QUERY]
 
 - **数据预览**：表格格式显示前 10 行数据
 - **数据质量检查**：缺失值、重复行、列统计、离群值检测
-- **SQL 查询**：基于 Polars SQL 引擎（开发中）
+- **SQL 查询**：基于 Polars SQL 引擎，支持完整 SQL 语法 ✅
 - **零拷贝读取**：大文件（>1MB）自动使用 `memmap2` 内存映射
 - **惰性求值**：`LazyFrame` 模式优化内存占用，支持超大数据集
 
@@ -28,7 +28,7 @@ xore p [OPTIONS] <FILE> [QUERY]
 | 参数 | 类型 | 必填 | 说明 |
 |-----|------|-----|------|
 | `FILE` | String | 是 | 数据文件路径 |
-| `QUERY` | String | 否 | SQL 查询语句（开发中）|
+| `QUERY` | String | 否 | SQL 查询语句 |
 
 ### 选项参数
 
@@ -40,9 +40,9 @@ xore p [OPTIONS] <FILE> [QUERY]
 
 | 格式 | 扩展名 | 预览 | 质量检查 | SQL 查询 |
 |-----|-------|-----|---------|---------|
-| CSV | .csv | ✅ | ✅ | 🔄 开发中 |
-| JSON | .json | ✅ | ✅ | 🔄 开发中 |
-| Parquet | .parquet | ✅ | ✅ | 🔄 开发中 |
+| CSV | .csv | ✅ | ✅ | ✅ |
+| JSON | .json | ✅ | ✅ | ❌ |
+| Parquet | .parquet | ✅ | ✅ | ✅ |
 
 **性能特性：**
 
@@ -80,17 +80,39 @@ xore p metrics.parquet --quality-check
 xore p users.json --quality-check
 ```
 
-### SQL 查询（开发中）
+### SQL 查询
 
 ```bash
-# 基本查询（即将支持）
-xore p data.csv "SELECT * FROM self WHERE age > 30"
+# 基本查询
+xore p data.csv "SELECT * FROM data WHERE age > 30"
+xore p users.csv "SELECT name, email FROM users WHERE active = true"
 
-# 聚合查询（即将支持）
-xore p sales.csv "SELECT region, SUM(revenue) FROM self GROUP BY region"
+# 聚合查询
+xore p sales.csv "SELECT category, SUM(price * quantity) as revenue FROM sales GROUP BY category"
+xore p metrics.csv "SELECT region, AVG(score) as avg_score FROM metrics GROUP BY region ORDER BY avg_score DESC"
 
-# 注：当前版本输出模拟提示，Polars SQL 引擎集成中
+# 多表 JOIN（需要先注册多个表，当前版本支持单文件查询）
+xore p orders.csv "SELECT * FROM orders WHERE total > 1000 LIMIT 10"
+
+# 复杂查询示例
+xore p sales.csv "SELECT
+    category,
+    COUNT(*) as count,
+    SUM(revenue) as total_revenue,
+    AVG(revenue) as avg_revenue
+FROM sales
+WHERE date >= '2024-01-01'
+GROUP BY category
+ORDER BY total_revenue DESC
+LIMIT 5"
 ```
+
+**注意事项：**
+
+- 表名使用文件名（去除扩展名），例如 `data.csv` 的表名为 `data`
+- 支持标准 SQL 语法：`SELECT`, `WHERE`, `GROUP BY`, `ORDER BY`, `LIMIT`, `JOIN`
+- 支持聚合函数：`COUNT`, `SUM`, `AVG`, `MIN`, `MAX`
+- 结果最多显示 100 行（避免终端溢出）
 
 ## 输出示例
 

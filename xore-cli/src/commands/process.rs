@@ -5,7 +5,7 @@
 use anyhow::{Context, Result};
 use colored::*;
 use std::path::Path;
-use xore_process::{DataParser, DataProfiler};
+use xore_process::{DataParser, DataProfiler, SqlEngine};
 
 use crate::ui::{Alignment, Column, Table, TableStyle, ICON_SUCCESS, ICON_TIP, ICON_WARNING};
 
@@ -213,34 +213,76 @@ fn format_json_value(value: &serde_json::Value) -> String {
 
 /// SQL 查询
 fn run_sql_query(path: &Path, sql: &str, extension: &str) -> Result<()> {
-    println!("{}", "⚙️  执行 SQL 查询...".cyan());
+    println!("{} {} SQL 查询...\n", "⚙️".cyan(), "执行".bold());
     println!("文件: {}", path.display().to_string().yellow());
     println!("查询: {}\n", sql.dimmed());
 
     match extension {
         "csv" | "parquet" => {
-            // TODO: 实现实际的 SQL 查询 (Day 17-18)
-            println!("{}", "SQL 查询功能即将推出，将使用 Polars SQL 引擎".yellow());
-            println!("\n示例输出:");
+            // 创建 SQL 引擎
+            let mut engine = SqlEngine::new();
 
-            // 模拟输出
-            let columns = vec![
-                Column::new("column").with_alignment(Alignment::Left),
-                Column::new("count").with_alignment(Alignment::Right),
-            ];
+            // 注册表（使用文件名作为表名，去除扩展名）
+            let table_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("this");
 
-            let table = Table::new(columns)
-                .with_style(TableStyle::Simple)
-                .row(["value1", "1234"])
-                .row(["value2", "2345"])
-                .row(["value3", "3456"]);
+            engine
+                .register_table(table_name, path)
+                .with_context(|| format!("无法注册表 '{}'", table_name))?;
 
-            print!("{}", table.render());
-            println!("\n{} 处理完成 (模拟数据)", ICON_SUCCESS.green());
+            // 执行查询
+            let result = engine.execute(sql).with_context(|| "SQL 查询执行失败")?;
+
+            // 渲染结果
+            render_dataframe_as_table(&result)?;
+
+            println!(
+                "\n{} 查询完成 ({} 行, {} 列)",
+                ICON_SUCCESS.green(),
+                result.height().to_string().cyan(),
+                result.width().to_string().cyan()
+            );
         }
         _ => {
             println!("{}", format!("SQL 查询不支持 {} 格式", extension).red());
+            println!("{}", "支持的格式: csv, parquet".dimmed());
         }
+    }
+
+    Ok(())
+}
+
+/// 将 DataFrame 渲染为表格
+fn render_dataframe_as_table(df: &xore_process::DataFrame) -> Result<()> {
+    use xore_process::AnyValue;
+
+    let column_names = df.get_column_names();
+    let columns: Vec<Column> = column_names.iter().map(|name| Column::new(name)).collect();
+
+    let mut table = Table::new(columns).with_style(TableStyle::Simple);
+
+    // 添加数据行（最多显示 100 行）
+    let max_rows = df.height().min(100);
+    for row_idx in 0..max_rows {
+        let row_data: Vec<String> = column_names
+            .iter()
+            .map(|col_name| {
+                df.column(col_name)
+                    .ok()
+                    .and_then(|series| series.get(row_idx).ok())
+                    .map(|val| format_anyvalue(&val))
+                    .unwrap_or_else(|| "null".to_string())
+            })
+            .collect();
+
+        table.add_row(row_data);
+    }
+
+    // 渲染表格
+    print!("{}", table.render());
+
+    // 如果行数超过 100，显示提示
+    if df.height() > 100 {
+        println!("\n{} 仅显示前 100 行，共 {} 行", ICON_TIP.blue(), df.height().to_string().cyan());
     }
 
     Ok(())
@@ -269,6 +311,8 @@ fn run_quality_check(path: &Path, extension: &str) -> Result<()> {
 
 /// 使用 Polars 进行质量检查
 fn quality_check_with_polars(path: &Path) -> Result<()> {
+    use xore_process::{Severity, SuggestionType};
+
     let parser = DataParser::new();
     let profiler = DataProfiler::new();
 
@@ -293,34 +337,80 @@ fn quality_check_with_polars(path: &Path) -> Result<()> {
         has_issues = true;
         println!("  {} 发现 {} 列存在缺失值", ICON_WARNING.yellow(), report.missing_values.len());
         for (name, stats) in report.missing_values.iter().take(5) {
-            println!("    - {}: {:.1}% 缺失 ({} 行)", name.cyan(), stats.percentage, stats.count);
+            let color_fn = if stats.percentage > 50.0 {
+                |s: String| s.red()
+            } else if stats.percentage > 10.0 {
+                |s: String| s.yellow()
+            } else {
+                |s: String| s.normal()
+            };
+            println!(
+                "    - {}: {} 缺失 ({} 行)",
+                name.cyan(),
+                color_fn(format!("{:.1}%", stats.percentage)),
+                stats.count
+            );
         }
     }
 
     // 重复行
     if report.duplicate_rows > 0 {
         has_issues = true;
+        let dup_percentage = if report.total_rows > 0 {
+            (report.duplicate_rows as f64 / report.total_rows as f64) * 100.0
+        } else {
+            0.0
+        };
         println!(
-            "  {} 检测到 {} 行重复数据",
+            "  {} 检测到 {} 行重复数据 ({:.1}%)",
             ICON_WARNING.yellow(),
-            report.duplicate_rows.to_string().yellow()
+            report.duplicate_rows.to_string().yellow(),
+            dup_percentage
         );
+    }
+
+    // 离群值
+    if !report.outliers.is_empty() {
+        has_issues = true;
+        println!("  {} 发现 {} 列存在离群值", ICON_WARNING.yellow(), report.outliers.len());
+        for (name, info) in report.outliers.iter().take(5) {
+            println!("    - {}: {} 个离群值 ({:.1}%)", name.cyan(), info.count, info.percentage);
+        }
     }
 
     if !has_issues {
         println!("  {} 未发现明显问题", ICON_SUCCESS.green());
     }
 
-    // 建议
-    println!("\n{}", "建议".bold());
-    if report.duplicate_rows > 0 {
-        println!("  {} 考虑去除重复行以减少数据冗余", ICON_TIP);
-    }
-    if !report.missing_values.is_empty() {
-        println!("  {} 检查数据源，确保必填字段有值", ICON_TIP);
-    }
-    if !has_issues {
-        println!("  {} 数据质量良好，可以继续处理", ICON_TIP);
+    // 智能建议
+    if !report.suggestions.is_empty() {
+        println!("\n{}", "智能建议".bold());
+
+        // 按严重程度分组显示
+        let errors: Vec<_> =
+            report.suggestions.iter().filter(|s| s.severity == Severity::Error).collect();
+        let warnings: Vec<_> =
+            report.suggestions.iter().filter(|s| s.severity == Severity::Warning).collect();
+        let infos: Vec<_> =
+            report.suggestions.iter().filter(|s| s.severity == Severity::Info).collect();
+
+        // 显示错误级别建议
+        for suggestion in errors {
+            println!("  {} {}", "❌".red(), suggestion.message.red());
+        }
+
+        // 显示警告级别建议
+        for suggestion in warnings {
+            println!("  {} {}", ICON_WARNING.yellow(), suggestion.message.yellow());
+        }
+
+        // 显示信息级别建议（最多显示 3 条）
+        for suggestion in infos.iter().take(3) {
+            println!("  {} {}", ICON_TIP.blue(), suggestion.message);
+        }
+    } else {
+        println!("\n{}", "智能建议".bold());
+        println!("  {} 数据质量良好，可以继续处理", ICON_TIP.blue());
     }
 
     Ok(())

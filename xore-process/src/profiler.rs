@@ -19,6 +19,60 @@ pub struct QualityReport {
     pub duplicate_rows: usize,
     /// 数据类型信息
     pub column_types: HashMap<String, String>,
+    /// 智能建议列表
+    pub suggestions: Vec<Suggestion>,
+    /// 离群值检测结果
+    pub outliers: HashMap<String, OutlierInfo>,
+}
+
+/// 智能建议
+#[derive(Debug, Clone)]
+pub struct Suggestion {
+    /// 建议类型
+    pub suggestion_type: SuggestionType,
+    /// 建议描述
+    pub message: String,
+    /// 相关列名（如果适用）
+    pub column: Option<String>,
+    /// 严重程度
+    pub severity: Severity,
+}
+
+/// 建议类型
+#[derive(Debug, Clone, PartialEq)]
+pub enum SuggestionType {
+    /// 缺失值处理
+    MissingValues,
+    /// 重复数据
+    Duplicates,
+    /// 离群值
+    Outliers,
+    /// 数据类型
+    DataType,
+    /// 数据分布
+    Distribution,
+}
+
+/// 严重程度
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Severity {
+    /// 信息
+    Info,
+    /// 警告
+    Warning,
+    /// 错误
+    Error,
+}
+
+/// 离群值信息
+#[derive(Debug, Clone)]
+pub struct OutlierInfo {
+    /// 离群值数量
+    pub count: usize,
+    /// 离群值百分比
+    pub percentage: f64,
+    /// 离群值索引（最多保留前 10 个）
+    pub indices: Vec<usize>,
 }
 
 /// 缺失值统计
@@ -85,6 +139,13 @@ impl DataProfiler {
         // 统计重复行（使用哈希）
         let duplicate_rows = self.count_duplicates(df)?;
 
+        // 批量检测离群值
+        let outliers = self.detect_outliers_batch(df)?;
+
+        // 生成智能建议
+        let suggestions =
+            self.generate_suggestions(total_rows, &missing_values, duplicate_rows, &outliers);
+
         Ok(QualityReport {
             total_rows,
             total_columns,
@@ -92,7 +153,143 @@ impl DataProfiler {
             missing_values,
             duplicate_rows,
             column_types,
+            suggestions,
+            outliers,
         })
+    }
+
+    /// 批量检测所有数值列的离群值
+    fn detect_outliers_batch(&self, df: &DataFrame) -> Result<HashMap<String, OutlierInfo>> {
+        let mut outliers = HashMap::new();
+
+        for col_name in df.get_column_names() {
+            let column = df.column(col_name).map_err(|e| anyhow::anyhow!("获取列失败: {}", e))?;
+            let series = column.as_materialized_series();
+
+            // 只处理数值类型
+            if !series.dtype().is_numeric() {
+                continue;
+            }
+
+            // 检测离群值
+            match self.detect_outliers(df, col_name) {
+                Ok(indices) if !indices.is_empty() => {
+                    let count = indices.len();
+                    let percentage = if df.height() > 0 {
+                        (count as f64 / df.height() as f64) * 100.0
+                    } else {
+                        0.0
+                    };
+
+                    // 只保留前 10 个索引
+                    let indices_sample = indices.into_iter().take(10).collect();
+
+                    outliers.insert(
+                        col_name.to_string(),
+                        OutlierInfo { count, percentage, indices: indices_sample },
+                    );
+                }
+                _ => {}
+            }
+        }
+
+        Ok(outliers)
+    }
+
+    /// 生成智能建议
+    fn generate_suggestions(
+        &self,
+        total_rows: usize,
+        missing_values: &HashMap<String, MissingStats>,
+        duplicate_rows: usize,
+        outliers: &HashMap<String, OutlierInfo>,
+    ) -> Vec<Suggestion> {
+        let mut suggestions = Vec::new();
+
+        // 缺失值建议
+        for (col_name, stats) in missing_values {
+            let severity = if stats.percentage > 50.0 {
+                Severity::Error
+            } else if stats.percentage > 10.0 {
+                Severity::Warning
+            } else {
+                Severity::Info
+            };
+
+            let message = if stats.percentage > 50.0 {
+                format!(
+                    "列 '{}' 缺失值过多 ({:.1}%)，建议检查数据源或考虑删除该列",
+                    col_name, stats.percentage
+                )
+            } else if stats.percentage > 10.0 {
+                format!(
+                    "列 '{}' 存在 {:.1}% 缺失值，建议使用插值或填充方法处理",
+                    col_name, stats.percentage
+                )
+            } else {
+                format!("列 '{}' 存在少量缺失值 ({:.1}%)", col_name, stats.percentage)
+            };
+
+            suggestions.push(Suggestion {
+                suggestion_type: SuggestionType::MissingValues,
+                message,
+                column: Some(col_name.clone()),
+                severity,
+            });
+        }
+
+        // 重复数据建议
+        if duplicate_rows > 0 {
+            let dup_percentage = if total_rows > 0 {
+                (duplicate_rows as f64 / total_rows as f64) * 100.0
+            } else {
+                0.0
+            };
+
+            let severity = if dup_percentage > 20.0 { Severity::Warning } else { Severity::Info };
+
+            let message = if dup_percentage > 20.0 {
+                format!(
+                    "检测到 {} 行重复数据 ({:.1}%)，强烈建议去重以提高数据质量",
+                    duplicate_rows, dup_percentage
+                )
+            } else {
+                format!("检测到 {} 行重复数据，建议检查是否需要去重", duplicate_rows)
+            };
+
+            suggestions.push(Suggestion {
+                suggestion_type: SuggestionType::Duplicates,
+                message,
+                column: None,
+                severity,
+            });
+        }
+
+        // 离群值建议
+        for (col_name, info) in outliers {
+            let severity = if info.percentage > 5.0 { Severity::Warning } else { Severity::Info };
+
+            let message = if info.percentage > 5.0 {
+                format!(
+                    "列 '{}' 检测到 {} 个离群值 ({:.1}%)，建议检查数据异常",
+                    col_name, info.count, info.percentage
+                )
+            } else {
+                format!("列 '{}' 检测到 {} 个离群值，可能需要进一步分析", col_name, info.count)
+            };
+
+            suggestions.push(Suggestion {
+                suggestion_type: SuggestionType::Outliers,
+                message,
+                column: Some(col_name.clone()),
+                severity,
+            });
+        }
+
+        // 按严重程度排序
+        suggestions.sort_by(|a, b| b.severity.cmp(&a.severity));
+
+        suggestions
     }
 
     /// 统计重复行数
@@ -271,5 +468,103 @@ mod tests {
         let report = profiler.profile(&df).unwrap();
 
         assert!(report.missing_values.is_empty());
+    }
+
+    #[test]
+    fn test_suggestions_generation() {
+        let df = df! {
+            "id" => &[1, 2, 3, 4, 5],
+            "age" => &[Some(25), None, None, Some(35), Some(40)], // 40% 缺失
+            "score" => &[1.0, 2.0, 3.0, 4.0, 100.0], // 有离群值
+        }
+        .unwrap();
+
+        let profiler = DataProfiler::new();
+        let report = profiler.profile(&df).unwrap();
+
+        // 应该生成建议
+        assert!(!report.suggestions.is_empty());
+
+        // 应该有缺失值建议
+        let missing_suggestions: Vec<_> = report
+            .suggestions
+            .iter()
+            .filter(|s| s.suggestion_type == SuggestionType::MissingValues)
+            .collect();
+        assert!(!missing_suggestions.is_empty());
+
+        // 应该有离群值建议
+        let outlier_suggestions: Vec<_> = report
+            .suggestions
+            .iter()
+            .filter(|s| s.suggestion_type == SuggestionType::Outliers)
+            .collect();
+        assert!(!outlier_suggestions.is_empty());
+    }
+
+    #[test]
+    fn test_batch_outlier_detection() {
+        let df = df! {
+            "col1" => &[1.0, 2.0, 3.0, 4.0, 5.0, 100.0],
+            "col2" => &[10.0, 20.0, 30.0, 40.0, 50.0, 500.0],
+            "col3" => &[1.0, 2.0, 3.0, 4.0, 5.0, 6.0], // 无离群值
+        }
+        .unwrap();
+
+        let profiler = DataProfiler::new();
+        let report = profiler.profile(&df).unwrap();
+
+        // col1 和 col2 应该有离群值
+        assert!(report.outliers.contains_key("col1"));
+        assert!(report.outliers.contains_key("col2"));
+
+        // col3 不应该有离群值
+        assert!(!report.outliers.contains_key("col3"));
+
+        // 检查离群值信息
+        let col1_outliers = &report.outliers["col1"];
+        assert!(col1_outliers.count > 0);
+        assert!(col1_outliers.percentage > 0.0);
+    }
+
+    #[test]
+    fn test_duplicate_suggestions() {
+        let df = df! {
+            "id" => &[1, 2, 3, 2, 1], // 有重复
+            "value" => &[10, 20, 30, 20, 10],
+        }
+        .unwrap();
+
+        let profiler = DataProfiler::new();
+        let report = profiler.profile(&df).unwrap();
+
+        // 应该有重复数据建议
+        let dup_suggestions: Vec<_> = report
+            .suggestions
+            .iter()
+            .filter(|s| s.suggestion_type == SuggestionType::Duplicates)
+            .collect();
+        assert!(!dup_suggestions.is_empty());
+    }
+
+    #[test]
+    fn test_severity_levels() {
+        let df = df! {
+            "critical" => &[Some(1), None, None, None, None], // 80% 缺失 -> Error
+            "warning" => &[Some(1), Some(2), None, Some(4), Some(5)], // 20% 缺失 -> Warning/Info
+        }
+        .unwrap();
+
+        let profiler = DataProfiler::new();
+        let report = profiler.profile(&df).unwrap();
+
+        // 应该有不同严重程度的建议
+        let has_error = report.suggestions.iter().any(|s| s.severity == Severity::Error);
+        let has_warning_or_info = report
+            .suggestions
+            .iter()
+            .any(|s| s.severity == Severity::Warning || s.severity == Severity::Info);
+
+        assert!(has_error || has_warning_or_info);
     }
 }
