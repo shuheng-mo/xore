@@ -3,9 +3,12 @@
 //! 这个crate提供基于ONNX的语义嵌入生成和向量相似度计算功能。
 
 pub mod embedding;
+pub mod search;
 pub mod tokenizer;
 
 pub use embedding::EmbeddingModel;
+pub use search::{cosine_similarity, Document, SearchResult, VectorSearcher};
+pub use tokenizer::Tokenizer;
 
 #[cfg(test)]
 mod tests {

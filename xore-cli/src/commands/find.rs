@@ -3,13 +3,16 @@
 //! 提供文件扫描和搜索功能，集成了 FileScanner 进行高性能文件遍历，
 //! 以及 IndexBuilder 和 Searcher 进行全文索引搜索。
 
+use std::env;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 use anyhow::{Context, Result};
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
+use xore_ai::{Document, EmbeddingModel, VectorSearcher};
 use xore_search::{
     index_exists, FileScanner, FileTypeFilter, IncrementalConfig, IncrementalIndexer, IndexBuilder,
     IndexConfig, MtimeFilter, ScanConfig, Searcher, SizeFilter, WatcherConfig,
@@ -144,11 +147,11 @@ pub fn execute(args: FindArgs) -> Result<()> {
         pb.finish_and_clear();
     }
 
-    // 如果有查询字符串，进行内容搜索（目前只支持简单的文件名匹配）
+    // 如果有查询字符串，进行内容搜索
     let matched_files: Vec<_> = if let Some(ref query) = args.query {
         if args.semantic {
-            println!("{}", "语义搜索功能即将推出...".yellow());
-            files
+            // 执行语义搜索
+            execute_semantic_search(&args, files)?
         } else {
             // 简单的文件名/路径匹配
             let query_lower = query.to_lowercase();
@@ -491,6 +494,169 @@ fn build_index(args: &FindArgs, index_path: &Path) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// 获取 ONNX 模型路径
+fn get_model_path() -> PathBuf {
+    env::var("XORE_MODEL_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("assets/models/onnx/model.onnx"))
+}
+
+/// 获取 Tokenizer 路径
+fn get_tokenizer_path() -> PathBuf {
+    env::var("XORE_TOKENIZER_PATH")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("assets/models/tokenizer.json"))
+}
+
+/// 读取文件内容（限制大小）
+fn read_file_content(path: &Path, max_size: u64) -> Result<String> {
+    let metadata = fs::metadata(path)?;
+
+    // 跳过过大的文件
+    if metadata.len() > max_size {
+        anyhow::bail!("File too large: {} bytes", metadata.len());
+    }
+
+    // 跳过二进制文件（简单检测）
+    let content = fs::read_to_string(path)
+        .with_context(|| format!("Failed to read file: {}", path.display()))?;
+
+    Ok(content)
+}
+
+/// 执行语义搜索
+fn execute_semantic_search(
+    args: &FindArgs,
+    files: Vec<xore_search::ScannedFile>,
+) -> Result<Vec<xore_search::ScannedFile>> {
+    let query = match &args.query {
+        Some(q) => q,
+        None => {
+            println!("{}", "语义搜索需要提供查询字符串".yellow());
+            return Ok(files);
+        }
+    };
+
+    println!("{}", "正在加载语义搜索模型...".cyan());
+
+    // 加载模型
+    let model_path = get_model_path();
+    let tokenizer_path = get_tokenizer_path();
+
+    if !model_path.exists() {
+        anyhow::bail!(
+            "模型文件不存在: {}\n提示: 请先下载模型，参考 docs/semantic-search-guide.md",
+            model_path.display()
+        );
+    }
+
+    if !tokenizer_path.exists() {
+        anyhow::bail!(
+            "Tokenizer 文件不存在: {}\n提示: 请先下载模型，参考 docs/semantic-search-guide.md",
+            tokenizer_path.display()
+        );
+    }
+
+    let model = EmbeddingModel::load(&model_path, &tokenizer_path)
+        .context("Failed to load embedding model")?;
+
+    println!("{}", "✓ 模型加载成功".green());
+
+    // 创建向量搜索引擎
+    let mut searcher = VectorSearcher::new(model);
+
+    // 读取文件内容并建立索引
+    println!("{}", "正在索引文件内容...".cyan());
+    let max_file_size = 1024 * 1024; // 1MB
+    let max_files = 1000; // 最多索引 1000 个文件
+
+    let pb = ProgressBar::new(files.len().min(max_files) as u64);
+    pb.set_style(
+        ProgressStyle::default_bar()
+            .template("{spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} {msg}")
+            .unwrap()
+            .progress_chars("#>-"),
+    );
+
+    let mut indexed_count = 0;
+    let mut skipped_count = 0;
+
+    for file in files.iter().take(max_files) {
+        pb.inc(1);
+
+        match read_file_content(&file.path, max_file_size) {
+            Ok(content) => {
+                if content.trim().is_empty() {
+                    skipped_count += 1;
+                    continue;
+                }
+
+                let doc = Document {
+                    id: file.path.to_string_lossy().to_string(),
+                    path: file.path.clone(),
+                    content,
+                };
+
+                match searcher.add_document(doc) {
+                    Ok(_) => {
+                        indexed_count += 1;
+                    }
+                    Err(e) => {
+                        warn!("Failed to index {}: {:#}", file.path.display(), e);
+                        skipped_count += 1;
+                    }
+                }
+            }
+            Err(e) => {
+                debug!("Skipped {}: {}", file.path.display(), e);
+                skipped_count += 1;
+            }
+        }
+    }
+
+    pb.finish_and_clear();
+
+    println!(
+        "{} 已索引 {} 个文件 (跳过 {} 个)",
+        "✓".green(),
+        indexed_count.to_string().green().bold(),
+        skipped_count.to_string().dimmed()
+    );
+
+    if indexed_count == 0 {
+        println!("{}", "没有可索引的文件内容".yellow());
+        return Ok(vec![]);
+    }
+
+    // 执行语义搜索
+    println!("{}", format!("正在搜索: \"{}\"", query).cyan());
+    let top_k = 20; // 返回前 20 个结果
+    let results = searcher.search(query, top_k).context("Failed to perform semantic search")?;
+
+    if results.is_empty() {
+        println!("{}", "未找到相关结果".yellow());
+        return Ok(vec![]);
+    }
+
+    // 将搜索结果转换回 FileInfo
+    let matched_files: Vec<_> = results
+        .into_iter()
+        .filter_map(|result| {
+            files.iter().find(|f| f.path == result.document.path).map(|f| {
+                // 打印相似度分数
+                println!(
+                    "  {} (相似度: {:.4})",
+                    f.path.display().to_string().cyan(),
+                    result.score.to_string().yellow()
+                );
+                f.clone()
+            })
+        })
+        .collect();
+
+    Ok(matched_files)
 }
 
 /// 高亮显示匹配的文本

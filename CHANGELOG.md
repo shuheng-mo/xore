@@ -7,6 +7,42 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Day 24: 语义搜索 CLI 集成** ([#day24](plans/day24-semantic-search-plan.md))
+  - **CLI 集成**：
+    - 实现 `xore f --semantic` 语义搜索命令（`xore-cli/src/commands/find.rs`）
+    - 支持环境变量配置模型路径（`XORE_MODEL_PATH`, `XORE_TOKENIZER_PATH`）
+    - 自动文件内容读取和向量索引构建
+    - 实时进度显示和相似度评分输出
+  - **功能特性**：
+    - 最多索引 1000 个文件（防止内存溢出）
+    - 跳过大于 1MB 的文件
+    - 跳过空文件和二进制文件
+    - 返回 Top-20 相似结果
+  - **文档更新**：
+    - 更新 `docs/commands/find.md` 添加语义搜索章节
+    - 包含使用示例、性能指标、最佳实践
+    - 对比全文搜索与语义搜索的区别
+
+- **Day 22-23: ONNX 集成与语义搜索基础** ([#day22-23](plans/day22-23-onnx-plan.md))
+  - **ONNX Runtime 集成**：
+    - 实现 `EmbeddingModel` 加载和推理（`xore-ai/src/embedding.rs`）
+    - 支持 MiniLM-L6-v2 模型（384维向量）
+    - 文本嵌入向量生成功能
+    - L2 归一化和平均池化
+  - **Tokenizer 封装**：
+    - 基于 HuggingFace tokenizers 实现（`xore-ai/src/tokenizer.rs`）
+    - 支持 WordPiece 分词
+    - 批量编码优化
+  - **向量搜索引擎**：
+    - 实现 `VectorSearcher` 语义搜索（`xore-ai/src/search.rs`）
+    - 余弦相似度计算
+    - 文档索引管理
+    - Top-K 搜索结果排序
+  - **测试覆盖**：6 个单元测试通过
+  - **文档**：完整的 README 和使用示例
+
 ### Fixed
 
 - 修复 `is_binary_content()` 函数的UTF-8字符边界错误，避免在8000字节位置切割多字节字符时panic

@@ -58,3 +58,4 @@ AGENTS.md
 .opencodeignore
 plans/*
 examples/benchmark-data/large/*
+assets/models/*
