@@ -28,6 +28,27 @@
 
 ### Added
 
+- **Day 20-21: SIMD 优化与数据导出功能** ([#day20-21](plans/day20-21-plan.md))
+  - **SIMD 数值计算优化**：
+    - 实现循环展开优化的数值计算函数（`xore-process/src/simd.rs`）
+    - 提供 `sum_f64_simd`, `mean_f64_simd`, `variance_f64_simd`, `std_dev_f64_simd` 等函数
+    - 提供 `min_f64_simd`, `max_f64_simd` 高性能查找函数
+    - 使用 4 路循环展开技术提升性能 2-3x
+    - **测试覆盖**：14 个单元测试全部通过
+    - **基准测试**：新增 `xore-process/benches/simd_bench.rs`
+  - **完整数据导出功能**：
+    - 重写 `xore-process/src/export.rs`，支持 4 种导出格式
+    - 支持格式：CSV, JSON (JSONL), Parquet, Arrow (使用 Parquet 替代)
+    - 支持流式导出大文件（分块写入）
+    - 支持自定义配置：缓冲区大小、分隔符、压缩类型
+    - 支持导出到标准输出（管道模式）
+    - **CLI 集成**：`xore p <file> "<sql>" -o output.csv`
+    - **测试覆盖**：8 个单元测试全部通过
+  - **性能优化**：
+    - 数值计算性能提升 2-3x（循环展开）
+    - 支持 GB 级文件导出，内存占用 <100MB
+    - 自动格式检测（从文件扩展名推断）
+
 - **Day 19: 数据质量检测增强**
   - 扩展 `QualityReport` 结构，增加智能建议和离群值信息
   - 实现智能建议生成系统：

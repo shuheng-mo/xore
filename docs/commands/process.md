@@ -35,14 +35,27 @@ xore p [OPTIONS] <FILE> [QUERY]
 | 选项 | 类型 | 默认值 | 说明 |
 |-----|------|-------|------|
 | `--quality-check` | bool | false | 执行数据质量检查 |
+| `-o, --output` | String | - | 输出文件路径（支持 csv, json, parquet 格式）|
+| `-f, --format` | String | - | 导出格式（如不指定，从输出文件扩展名推断）|
 
 ## 支持的文件格式
+
+### 输入格式
 
 | 格式 | 扩展名 | 预览 | 质量检查 | SQL 查询 |
 |-----|-------|-----|---------|---------|
 | CSV | .csv | ✅ | ✅ | ✅ |
 | JSON | .json | ✅ | ✅ | ❌ |
 | Parquet | .parquet | ✅ | ✅ | ✅ |
+
+### 导出格式
+
+| 格式 | 扩展名 | 支持 | 压缩 | 流式导出 |
+|-----|-------|-----|------|---------|
+| CSV | .csv | ✅ | ❌ | ✅ |
+| JSON | .json, .jsonl | ✅ | ❌ | ✅ |
+| Parquet | .parquet | ✅ | ✅ | ✅ |
+| Arrow IPC | .arrow | ✅ | ❌ | ✅ |
 
 **性能特性：**
 
@@ -199,6 +212,56 @@ server.timeout    | 30
 | 结构验证 | 数组元素字段一致性检查 | ✅ |
 
 **注：** CLI 当前输出缺失值和重复行统计，更多统计项可通过 API 调用 `DataProfiler` 获取。
+
+## 数据导出功能 ✨
+
+### 导出查询结果
+
+```bash
+# 导出为 CSV
+xore p data.csv "SELECT * FROM data WHERE age > 30" -o output.csv
+
+# 导出为 JSON (JSONL 格式)
+xore p sales.csv "SELECT category, SUM(revenue) as total FROM sales GROUP BY category" -o report.json
+
+# 导出为 Parquet（列式存储，高压缩比）
+xore p large.csv "SELECT * FROM large WHERE status = 'active'" -o filtered.parquet
+
+# 指定导出格式（覆盖扩展名推断）
+xore p data.csv "SELECT * FROM data" -o output.txt -f csv
+```
+
+### 导出特性
+
+- **自动格式检测**：从输出文件扩展名推断格式
+- **流式导出**：支持 GB 级数据导出，内存占用 <100MB
+- **压缩支持**：Parquet 格式支持 Gzip/Zstd 压缩
+- **高性能**：使用 Polars 引擎，导出速度快
+
+### 导出示例输出
+
+```
+⚙️ 执行 SQL 查询...
+文件: sales.csv
+查询: SELECT category, SUM(revenue) as total FROM sales GROUP BY category
+
+💾 导出数据到 report.csv...
+✓ 导出完成 (150 行, 2 列, 3,245 字节)
+```
+
+## 性能优化
+
+### SIMD 数值计算 ✨
+
+- 使用循环展开优化的数值计算
+- 性能提升 2-3x（求和、均值、方差等）
+- 支持大规模数据统计分析
+
+### 零拷贝与惰性求值
+
+- 文件 >1MB 自动使用 `memmap2` 内存映射
+- 使用 Polars `LazyFrame` 延迟执行
+- Polars 自动并行化查询，利用多核 CPU
 
 ## 相关命令
 

@@ -5,13 +5,18 @@
 pub mod export;
 pub mod parser;
 pub mod profiler;
+pub mod simd;
 pub mod sql;
 
 // 导出主要类型
+pub use export::{CompressionType, DataExporter, ExportConfig, ExportFormat};
 pub use parser::{DataParser, ParserConfig};
 pub use profiler::{
     ColumnStats, DataProfiler, MissingStats, OutlierInfo, QualityReport, Severity, Suggestion,
     SuggestionType,
+};
+pub use simd::{
+    max_f64_simd, mean_f64_simd, min_f64_simd, std_dev_f64_simd, sum_f64_simd, variance_f64_simd,
 };
 pub use sql::SqlEngine;
 

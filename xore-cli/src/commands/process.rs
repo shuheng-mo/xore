@@ -5,12 +5,18 @@
 use anyhow::{Context, Result};
 use colored::*;
 use std::path::Path;
-use xore_process::{DataParser, DataProfiler, SqlEngine};
+use xore_process::{DataExporter, DataParser, DataProfiler, ExportFormat, SqlEngine};
 
 use crate::ui::{Alignment, Column, Table, TableStyle, ICON_SUCCESS, ICON_TIP, ICON_WARNING};
 
 /// 执行数据处理命令
-pub fn execute(file: &str, query: Option<&str>, quality_check: bool) -> Result<()> {
+pub fn execute(
+    file: &str,
+    query: Option<&str>,
+    quality_check: bool,
+    output: Option<&str>,
+    format: Option<&str>,
+) -> Result<()> {
     let path = Path::new(file);
 
     // 检查文件是否存在
@@ -24,7 +30,7 @@ pub fn execute(file: &str, query: Option<&str>, quality_check: bool) -> Result<(
     if quality_check {
         run_quality_check(path, &extension)?;
     } else if let Some(sql) = query {
-        run_sql_query(path, sql, &extension)?;
+        run_sql_query(path, sql, &extension, output, format)?;
     } else {
         run_data_preview(path, &extension)?;
     }
@@ -212,7 +218,13 @@ fn format_json_value(value: &serde_json::Value) -> String {
 }
 
 /// SQL 查询
-fn run_sql_query(path: &Path, sql: &str, extension: &str) -> Result<()> {
+fn run_sql_query(
+    path: &Path,
+    sql: &str,
+    extension: &str,
+    output: Option<&str>,
+    format: Option<&str>,
+) -> Result<()> {
     println!("{} {} SQL 查询...\n", "⚙️".cyan(), "执行".bold());
     println!("文件: {}", path.display().to_string().yellow());
     println!("查询: {}\n", sql.dimmed());
@@ -230,23 +242,67 @@ fn run_sql_query(path: &Path, sql: &str, extension: &str) -> Result<()> {
                 .with_context(|| format!("无法注册表 '{}'", table_name))?;
 
             // 执行查询
-            let result = engine.execute(sql).with_context(|| "SQL 查询执行失败")?;
+            let mut result = engine.execute(sql).with_context(|| "SQL 查询执行失败")?;
 
-            // 渲染结果
-            render_dataframe_as_table(&result)?;
+            // 如果指定了输出文件，导出结果
+            if let Some(output_path) = output {
+                export_dataframe(&mut result, output_path, format)?;
+            } else {
+                // 否则渲染到终端
+                render_dataframe_as_table(&result)?;
 
-            println!(
-                "\n{} 查询完成 ({} 行, {} 列)",
-                ICON_SUCCESS.green(),
-                result.height().to_string().cyan(),
-                result.width().to_string().cyan()
-            );
+                println!(
+                    "\n{} 查询完成 ({} 行, {} 列)",
+                    ICON_SUCCESS.green(),
+                    result.height().to_string().cyan(),
+                    result.width().to_string().cyan()
+                );
+            }
         }
         _ => {
             println!("{}", format!("SQL 查询不支持 {} 格式", extension).red());
             println!("{}", "支持的格式: csv, parquet".dimmed());
         }
     }
+
+    Ok(())
+}
+
+/// 导出 DataFrame 到文件
+fn export_dataframe(
+    df: &mut xore_process::DataFrame,
+    output_path: &str,
+    format: Option<&str>,
+) -> Result<()> {
+    let exporter = DataExporter::new();
+    let path = Path::new(output_path);
+
+    // 解析格式
+    let export_format = if let Some(fmt) = format {
+        match fmt.to_lowercase().as_str() {
+            "csv" => Some(ExportFormat::Csv),
+            "json" => Some(ExportFormat::Json),
+            "parquet" => Some(ExportFormat::Parquet),
+            "arrow" => Some(ExportFormat::Arrow),
+            _ => return Err(anyhow::anyhow!("不支持的导出格式: {}", fmt)),
+        }
+    } else {
+        None // 从文件扩展名推断
+    };
+
+    println!("{} 导出数据到 {}...", "💾".cyan(), output_path.yellow());
+
+    let bytes = exporter
+        .export(df, path, export_format)
+        .with_context(|| format!("导出失败: {}", output_path))?;
+
+    println!(
+        "{} 导出完成 ({} 行, {} 列, {} 字节)",
+        ICON_SUCCESS.green(),
+        df.height().to_string().cyan(),
+        df.width().to_string().cyan(),
+        bytes.to_string().cyan()
+    );
 
     Ok(())
 }

@@ -112,6 +112,14 @@ enum Commands {
         /// 数据质量检测
         #[arg(long)]
         quality_check: bool,
+
+        /// 输出文件路径（支持 csv, json, parquet 格式）
+        #[arg(long, short = 'o')]
+        output: Option<String>,
+
+        /// 导出格式（如果不指定，从输出文件扩展名推断）
+        #[arg(long, short = 'f')]
+        format: Option<String>,
     },
 
     /// 性能基准测试
@@ -184,8 +192,14 @@ fn main() -> anyhow::Result<()> {
                 watch,
             })?;
         }
-        Commands::Process { file, query, quality_check } => {
-            process::execute(&file, query.as_deref(), quality_check)?;
+        Commands::Process { file, query, quality_check, output, format } => {
+            process::execute(
+                &file,
+                query.as_deref(),
+                quality_check,
+                output.as_deref(),
+                format.as_deref(),
+            )?;
         }
         Commands::Benchmark { suite, output, iterations, data_path, warmup } => {
             benchmark::execute(benchmark::BenchmarkArgs {
