@@ -10,7 +10,7 @@ use xore_core::LogConfig;
 mod commands;
 mod ui;
 
-use commands::{benchmark, find, process};
+use commands::{agent, benchmark, find, process};
 
 /// XORE - 搜索和数据处理一体化工具
 #[derive(Parser)]
@@ -37,6 +37,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Agent 优化功能（Agent-Native）
+    #[command(alias = "a")]
+    Agent {
+        #[command(subcommand)]
+        subcommand: AgentCommands,
+    },
+
     /// 查找文件（搜索功能）
     #[command(alias = "f")]
     Find {
@@ -159,6 +166,79 @@ enum Commands {
     },
 }
 
+#[derive(Subcommand)]
+enum AgentCommands {
+    /// 生成 Agent 初始化 Prompt
+    Init {
+        /// 目标模型 (gpt-4, claude, ollama, deepseek)
+        #[arg(long, default_value = "gpt-4")]
+        model: String,
+    },
+
+    /// 获取数据结构（不读全文）
+    Schema {
+        /// 文件路径
+        file: String,
+
+        /// 显示分布直方图
+        #[arg(long)]
+        histogram: bool,
+
+        /// JSON 格式输出
+        #[arg(long)]
+        json: bool,
+
+        /// 压缩 JSON（无空格）
+        #[arg(long)]
+        minify: bool,
+    },
+
+    /// 智能采样数据
+    Sample {
+        /// 文件路径
+        file: String,
+
+        /// 采样行数
+        #[arg(short = 'n', long, default_value = "5")]
+        rows: usize,
+
+        /// 采样策略 (random, head, tail, smart)
+        #[arg(long, default_value = "smart")]
+        strategy: String,
+
+        /// JSON 格式输出
+        #[arg(long)]
+        json: bool,
+    },
+
+    /// 执行 SQL 查询
+    Query {
+        /// 文件路径
+        file: String,
+
+        /// SQL 查询语句
+        sql: String,
+
+        /// 输出格式 (json, csv, table)
+        #[arg(long, short = 'f', default_value = "json")]
+        format: String,
+
+        /// 压缩 JSON（无空格）
+        #[arg(long)]
+        minify: bool,
+
+        /// 返回行数限制
+        #[arg(long)]
+        limit: Option<usize>,
+    },
+
+    /// SQL 错误分析
+    Explain {
+        /// SQL 语句
+        sql: String,
+    },
+}
+
 fn main() -> anyhow::Result<()> {
     // 解析命令行参数
     let cli = Cli::parse();
@@ -169,6 +249,34 @@ fn main() -> anyhow::Result<()> {
 
     // 执行子命令
     match cli.command {
+        Commands::Agent { subcommand } => {
+            let agent_args = match subcommand {
+                AgentCommands::Init { model } => {
+                    agent::AgentArgs { subcommand: agent::AgentSubcommand::Init { model } }
+                }
+                AgentCommands::Schema { file, histogram, json, minify } => agent::AgentArgs {
+                    subcommand: agent::AgentSubcommand::Schema { file, histogram, json, minify },
+                },
+                AgentCommands::Sample { file, rows, strategy, json } => {
+                    let strategy = strategy.parse().unwrap_or(agent::SampleStrategy::Smart);
+                    agent::AgentArgs {
+                        subcommand: agent::AgentSubcommand::Sample {
+                            file,
+                            n: rows,
+                            strategy,
+                            json,
+                        },
+                    }
+                }
+                AgentCommands::Query { file, sql, format, minify, limit } => agent::AgentArgs {
+                    subcommand: agent::AgentSubcommand::Query { file, sql, format, minify, limit },
+                },
+                AgentCommands::Explain { sql } => {
+                    agent::AgentArgs { subcommand: agent::AgentSubcommand::Explain { sql } }
+                }
+            };
+            agent::execute(agent_args)?;
+        }
         Commands::Find {
             query,
             path,

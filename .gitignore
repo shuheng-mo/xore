@@ -59,3 +59,4 @@ AGENTS.md
 plans/*
 examples/benchmark-data/large/*
 assets/models/*
+.roo/*

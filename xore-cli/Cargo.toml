@@ -24,6 +24,9 @@ xore-search = { path = "../xore-search" }
 xore-process = { path = "../xore-process" }
 xore-ai = { path = "../xore-ai" }
 
+# 数据处理
+polars = { workspace = true }
+
 # CLI框架
 clap.workspace = true
 colored.workspace = true
@@ -43,6 +46,9 @@ serde_json.workspace = true
 
 # 并发
 tokio.workspace = true
+
+# 随机数生成
+rand = "0.8"
 
 # 平台相关
 [target.'cfg(unix)'.dependencies]

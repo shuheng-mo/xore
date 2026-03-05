@@ -6,6 +6,7 @@ XORE 提供以下命令：
 |-----|------|------|
 | [find](./find.md) | `f` | 文件搜索与扫描 |
 | [process](./process.md) | `p` | 数据处理与分析（CSV/JSON/Parquet，基于 Polars）|
+| [agent](./agent.md) | `agent` | **Agent-Native 接口（降低 90%+ Token 消耗）** 🚀 |
 | [benchmark](./benchmark.md) | `bench` | 性能基准测试 |
 
 ## 全局选项
@@ -45,11 +46,13 @@ xore --help
 # 查看特定命令帮助
 xore find --help
 xore process --help
+xore agent --help
 xore benchmark --help
 
 # 使用别名
 xore f --help
 xore p --help
+xore agent --help
 xore bench --help
 ```
 

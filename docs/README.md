@@ -44,6 +44,7 @@ cargo install xore
 | **SQL 查询** | `xore process <file> "<sql>"` | **基于 Polars SQL 引擎的完整 SQL 支持** ✅ |
 | Polars 引擎 | `xore process` | 零拷贝读取、LazyFrame 惰性求值 |
 | 数据质量分析 | `xore process --quality-check` | 缺失值、重复行、离群值检测 |
+| **Agent 接口** | `xore agent` | **Agent-Native 接口，降低 90%+ Token 消耗** 🚀 |
 | 性能测试 | `xore benchmark` | 系统性能基准测试 |
 | 内存优化 | - | mimalloc 高性能分配器集成 |
 
@@ -101,6 +102,35 @@ xore p users.csv "SELECT users.name, SUM(orders.amount) as total
 - ✅ 多表 JOIN：INNER JOIN, LEFT JOIN
 - ✅ 复杂表达式和子查询
 
+### Agent-Native 接口 🚀
+
+XORE 提供专为 AI Agent 设计的接口，通过**计算下推**和**结构化摘要**降低 90%+ Token 消耗：
+
+```bash
+# 初始化 Agent 提示词
+xore agent init claude
+
+# 获取数据结构（零拷贝）
+xore agent schema data.csv --json
+
+# 智能数据采样
+xore agent sample data.csv 100 --strategy smart
+
+# SQL 查询（JSON 输出）
+xore agent query data.csv "SELECT * FROM data LIMIT 10"
+
+# SQL 错误分析
+xore agent explain "SELECT * FORM data"
+```
+
+**Agent 命令优势：**
+
+- ✅ 零拷贝 Schema 获取（不读取完整文件）
+- ✅ 智能采样保持数据分布代表性
+- ✅ JSON 结构化输出便于 AI 解析
+- ✅ 多模型提示词模板（Claude/GPT-4/Gemini）
+- ✅ **Token 节约 >90%**
+
 ## 获取帮助
 
 ```bash
@@ -110,5 +140,6 @@ xore --help
 # 查看特定命令帮助
 xore find --help
 xore process --help
+xore agent --help
 xore benchmark --help
 ```

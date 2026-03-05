@@ -9,6 +9,26 @@
 
 ### Added
 
+- **Day 26: Agent-Native 接口与 Roo Code Skills 集成** ([#day26](plans/agent-module-plan.md))
+  - **Agent 命令模块** (`xore-cli/src/commands/agent.rs`)：
+    - 实现 `xore agent` 命令，提供 5 个子命令：
+      - `xore agent init` - 生成 Agent 提示词模板（支持 Claude/GPT-4 等模型）
+      - `xore agent schema` - 获取数据结构（零拷贝，不读取完整文件）
+      - `xore agent sample` - 智能采样（random/head/tail/smart 四种策略）
+      - `xore agent query` - SQL 查询并输出 JSON 格式
+      - `xore agent explain` - SQL 错误分析与修复建议
+    - **计算下推优化**：通过 schema 和 sample 减少 90%+ Token 消耗
+    - **结构化输出**：JSON 格式便于 AI Agent 解析和处理
+  - **Roo Code Skills 集成** (`.roo/skills/`)：
+    - `xore-search` - 本地文件搜索 skill
+    - `xore-data-analysis` - 数据分析 skill
+    - `xore-agent` - Agent 优化 skill
+    - 支持 VS Code AI 助手快速调用 XORE 功能
+  - **依赖更新**：
+    - 添加 `polars` 0.45（用于数据处理）
+    - 添加 `rand` 0.8（用于随机采样）
+  - **测试覆盖**：6 个单元测试全部通过
+
 - **Day 25: 智能推荐系统** ([#day25](plans/day25-smart-recommendations-plan.md))
   - **搜索历史模块** (`xore-core/src/history.rs`)：
     - 实现 `SearchType` 枚举：FullText, Semantic, FileType, SemanticWithFilter

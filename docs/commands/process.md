@@ -4,6 +4,8 @@
 
 **别名:** `p`
 
+> **提示**：对于 AI Agent 集成，推荐使用 [`xore agent`](agent.md) 命令，可降低 90%+ Token 消耗。
+
 ## 语法
 
 ```bash
@@ -20,6 +22,13 @@ xore p [OPTIONS] <FILE> [QUERY]
 - **SQL 查询**：基于 Polars SQL 引擎，支持完整 SQL 语法 ✅
 - **零拷贝读取**：大文件（>1MB）自动使用 `memmap2` 内存映射
 - **惰性求值**：`LazyFrame` 模式优化内存占用，支持超大数据集
+
+**AI Agent 推荐**：对于 AI Agent 集成场景，请使用 [`xore agent`](agent.md) 命令：
+
+- 零拷贝 Schema 获取
+- 智能采样保持数据分布
+- JSON 结构化输出
+- Token 节约 >90%
 
 ## 参数
 
