@@ -14,15 +14,17 @@ jobs:
     name: 代码检查
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: 安装Rust工具链
-        uses: dtolnay/rust-toolchain@stable
+        uses: actions-rs/toolchain@v1
         with:
+          toolchain: stable
           components: rustfmt, clippy
+          override: true
 
       - name: 缓存Cargo依赖
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/bin/
@@ -46,15 +48,16 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         rust: [stable, nightly]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: 安装Rust工具链
-        uses: dtolnay/rust-toolchain@master
+        uses: actions-rs/toolchain@v1
         with:
           toolchain: ${{ matrix.rust }}
+          override: true
 
       - name: 缓存Cargo依赖
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/bin/
@@ -74,10 +77,13 @@ jobs:
     name: 代码覆盖率
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: 安装Rust工具链
-        uses: dtolnay/rust-toolchain@stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
 
       - name: 安装Tarpaulin
         run: cargo install cargo-tarpaulin
@@ -86,7 +92,7 @@ jobs:
         run: cargo tarpaulin --out Xml --all-features
 
       - name: 上传到Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v3
         with:
           files: ./cobertura.xml
           fail_ci_if_error: false
@@ -98,16 +104,19 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
       - name: 安装Rust工具链
-        uses: dtolnay/rust-toolchain@stable
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
 
       - name: 构建Release
         run: cargo build --release --verbose
 
       - name: 上传构建产物
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: xore-${{ matrix.os }}
-          path: target/release/xore${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+          path: "target/release/xore${{ matrix.os == 'windows-latest' && '.exe' || '' }}"
