@@ -24,8 +24,11 @@ XORE 提供以下命令：
 ## 使用示例
 
 ```bash
-# 详细模式
+# 详细模式（全局）
 xore --verbose find "error"
+
+# 详细模式（子命令级别，等效）
+xore find --verbose "error"
 
 # 静默模式
 xore --quiet find --type code

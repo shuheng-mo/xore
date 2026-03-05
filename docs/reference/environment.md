@@ -185,8 +185,11 @@ xore find --type log --size ">10MB" > large_logs.txt
 ### 查看当前配置
 
 ```bash
-# 启用详细输出查看配置信息
+# 启用详细输出查看配置信息（全局）
 xore --verbose find --help
+
+# 启用详细输出查看配置信息（子命令级别，等效）
+xore find --verbose --help
 ```
 
 ### 排查问题

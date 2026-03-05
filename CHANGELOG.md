@@ -9,6 +9,38 @@
 
 ### Added
 
+- **Day 26: 错误处理优化 (修复)** ([#day26-error](plans/day26-error-handling-plan.md))
+  - **Bug 修复**：修复 `--verbose` 标志在子命令上不工作的问题
+    - 原因：`verbose` 参数未设置为全局标志 (`global = true`)
+    - 修复：在 `xore-cli/src/main.rs` 中添加 `global = true` 属性
+    - 现在支持：`xore find --verbose "query"` 和 `xore --verbose find "query"` 两种用法
+
+- **Day 26: 错误处理优化** ([#day26-error](plans/day26-error-handling-plan.md))
+  - **扩展 `XoreError` 枚举** (`xore-core/src/error/mod.rs`)：
+    - 新增错误类型：`SearchError`, `ParseError`, `ValidationError`, `Timeout`, `PermissionDenied`
+    - 新增 `error_code()` 方法，返回机器可读的错误代码字符串
+    - 新增 `XoreErrorExt` trait，提供 `context()`, `with_location()`, `hint()` 方法
+    - 新增 `ErrorContext` 结构，支持多条上下文消息和位置信息
+    - 新增 `ErrorHint` 结构，支持智能提示、建议命令和文档链接
+    - 新增 `ErrorChain` 结构，支持错误来源追踪
+  - **统一错误格式化器** (`xore-core/src/error/format.rs`)：
+    - 实现 `ErrorFormatter`，参考 Rust 编译器风格输出
+    - 支持彩色/无彩色模式（`use_color` 配置）
+    - 支持 `--verbose` 模式显示详细堆栈和解决方案
+    - 支持智能提示开关（`show_hints` 配置）
+    - 提供 `print_error()` 和 `print_anyhow_error()` CLI 辅助函数
+  - **CLI 集成** (`xore-cli/src/main.rs`)：
+    - 重构 `main()` 函数，统一错误输出格式
+    - 错误时调用 `print_anyhow_error()` 格式化输出
+    - `--verbose` 模式显示完整错误链
+    - 错误退出码 `std::process::exit(1)`
+  - **各模块错误上下文优化**：
+    - `xore-process/src/parser.rs`：文件不存在、CSV/Parquet 读取失败均附带友好提示
+    - `xore-process/src/sql.rs`：SQL 执行失败附带 `xore agent explain` 建议
+    - `xore-search/src/indexer.rs`：索引创建/打开/提交失败附带重建建议
+    - `xore-search/src/query.rs`：查询解析/执行失败附带语法提示
+  - **测试覆盖**：43 个错误处理测试全部通过（新增 28 个）
+
 - **Day 26: Agent-Native 接口与 Roo Code Skills 集成** ([#day26](plans/agent-module-plan.md))
   - **Agent 命令模块** (`xore-cli/src/commands/agent.rs`)：
     - 实现 `xore agent` 命令，提供 5 个子命令：

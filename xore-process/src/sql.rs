@@ -26,10 +26,13 @@ impl SqlEngine {
 
     /// 注册表（从文件加载）
     pub fn register_table(&mut self, table_name: &str, path: &Path) -> Result<()> {
-        let lf = self
-            .parser
-            .read_lazy(path)
-            .with_context(|| format!("无法加载表 '{}' 从文件 {:?}", table_name, path))?;
+        let lf = self.parser.read_lazy(path).with_context(|| {
+            format!(
+                "无法加载表 '{}'\n  --> 文件: {}\n💡 提示: 请确认文件存在且格式正确 (csv/parquet)",
+                table_name,
+                path.display()
+            )
+        })?;
 
         self.tables.insert(table_name.to_string(), lf);
         Ok(())
@@ -51,10 +54,18 @@ impl SqlEngine {
         }
 
         // 执行查询
-        let result_lf = ctx.execute(sql).with_context(|| format!("SQL 查询执行失败: {}", sql))?;
+        let result_lf = ctx.execute(sql).with_context(|| format!(
+            "SQL 查询执行失败\n  --> SQL: {}\n💡 提示: 检查 SQL 语法，或运行 'xore agent explain \"{}\"' 获取分析",
+            sql, sql
+        ))?;
 
         // 收集结果
-        result_lf.collect().with_context(|| "收集查询结果失败")
+        result_lf.collect().with_context(|| {
+            format!(
+            "收集查询结果失败\n  --> SQL: {}\n💡 提示: 查询可能返回了过多数据，尝试添加 LIMIT 子句",
+            sql
+        )
+        })
     }
 }
 

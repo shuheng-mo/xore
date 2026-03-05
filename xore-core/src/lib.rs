@@ -10,7 +10,10 @@ pub mod recommendation;
 pub mod types;
 
 pub use config::Config;
-pub use error::{Result, XoreError};
+pub use error::{
+    print_anyhow_error, print_error, ErrorChain, ErrorContext, ErrorFormatter,
+    ErrorFormatterConfig, ErrorHint, Result, XoreError, XoreErrorExt,
+};
 pub use history::{
     get_default_history_path, HistoryStore, SearchHistoryEntry, SearchStats, SearchType,
 };

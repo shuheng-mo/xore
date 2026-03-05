@@ -176,27 +176,40 @@ impl IndexBuilder {
 
         // 创建索引目录
         std::fs::create_dir_all(&config.index_path).with_context(|| {
-            format!("Failed to create index directory: {:?}", config.index_path)
+            format!(
+                "无法创建索引目录: {}\n💡 提示: 请检查目录权限，或使用 --index-dir 指定其他路径",
+                config.index_path.display()
+            )
         })?;
 
         // 打开或创建索引
         let index = if config.index_path.join("meta.json").exists() {
             info!("Opening existing index at {:?}", config.index_path);
-            Index::open_in_dir(&config.index_path)
-                .with_context(|| format!("Failed to open index at {:?}", config.index_path))?
+            Index::open_in_dir(&config.index_path).with_context(|| {
+                format!(
+                    "无法打开索引: {}\n💡 提示: 索引可能已损坏，尝试运行 'xore f --rebuild' 重建索引",
+                    config.index_path.display()
+                )
+            })?
         } else {
             info!("Creating new index at {:?}", config.index_path);
-            Index::create_in_dir(&config.index_path, schema.schema().clone())
-                .with_context(|| format!("Failed to create index at {:?}", config.index_path))?
+            Index::create_in_dir(&config.index_path, schema.schema().clone()).with_context(
+                || {
+                    format!(
+                        "无法创建索引: {}\n💡 提示: 请检查磁盘空间和目录权限",
+                        config.index_path.display()
+                    )
+                },
+            )?
         };
 
         // 注册自定义分词器
         register_xore_tokenizer(&index)?;
 
         // 创建 IndexWriter
-        let writer = index
-            .writer(config.writer_buffer_size)
-            .with_context(|| "Failed to create index writer")?;
+        let writer = index.writer(config.writer_buffer_size).with_context(|| {
+            "无法创建索引写入器\n💡 提示: 可能有其他进程正在使用该索引，或磁盘空间不足"
+        })?;
 
         Ok(Self {
             index,
@@ -295,14 +308,16 @@ impl IndexBuilder {
     /// 用于增量索引场景，需要多次提交而不重建整个索引
     pub fn commit_changes(&mut self) -> Result<()> {
         info!("Committing index changes");
-        self.writer.commit().with_context(|| "Failed to commit index")?;
+        self.writer
+            .commit()
+            .with_context(|| "提交索引变更失败\n💡 提示: 请检查磁盘空间是否充足")?;
         Ok(())
     }
 
     /// 提交并优化索引
     pub fn build(mut self) -> Result<IndexStats> {
         info!("Committing index...");
-        self.writer.commit().with_context(|| "Failed to commit index")?;
+        self.writer.commit().with_context(|| "提交索引失败\n💡 提示: 请检查磁盘空间是否充足")?;
 
         // 等待合并完成
         self.writer.wait_merging_threads()?;

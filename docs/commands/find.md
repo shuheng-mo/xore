@@ -590,8 +590,11 @@ xore find --follow-links
 # 指定线程数
 xore find --threads 8
 
-# 详细输出
+# 详细输出（全局）
 xore --verbose find "error"
+
+# 详细输出（子命令级别，等效）
+xore find --verbose "error"
 ```
 
 ## 输出格式

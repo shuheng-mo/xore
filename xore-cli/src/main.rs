@@ -5,7 +5,7 @@
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 use clap::{Parser, Subcommand};
-use xore_core::LogConfig;
+use xore_core::{print_anyhow_error, LogConfig};
 
 mod commands;
 mod ui;
@@ -20,7 +20,7 @@ use commands::{agent, benchmark, find, process};
 #[command(about = "Explore the Abyss, Extract the Core", long_about = None)]
 struct Cli {
     /// 详细输出模式
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     verbose: bool,
 
     /// 静默模式
@@ -239,41 +239,45 @@ enum AgentCommands {
     },
 }
 
-fn main() -> anyhow::Result<()> {
-    // 解析命令行参数
-    let cli = Cli::parse();
-
-    // 初始化日志系统
-    let log_config = LogConfig::from_args(cli.verbose, cli.quiet, cli.no_color);
-    log_config.init()?;
-
-    // 执行子命令
-    match cli.command {
+/// 执行命令的内部函数
+fn run_command(cli: &Cli) -> anyhow::Result<()> {
+    match &cli.command {
         Commands::Agent { subcommand } => {
             let agent_args = match subcommand {
-                AgentCommands::Init { model } => {
-                    agent::AgentArgs { subcommand: agent::AgentSubcommand::Init { model } }
-                }
+                AgentCommands::Init { model } => agent::AgentArgs {
+                    subcommand: agent::AgentSubcommand::Init { model: model.clone() },
+                },
                 AgentCommands::Schema { file, histogram, json, minify } => agent::AgentArgs {
-                    subcommand: agent::AgentSubcommand::Schema { file, histogram, json, minify },
+                    subcommand: agent::AgentSubcommand::Schema {
+                        file: file.clone(),
+                        histogram: *histogram,
+                        json: *json,
+                        minify: *minify,
+                    },
                 },
                 AgentCommands::Sample { file, rows, strategy, json } => {
                     let strategy = strategy.parse().unwrap_or(agent::SampleStrategy::Smart);
                     agent::AgentArgs {
                         subcommand: agent::AgentSubcommand::Sample {
-                            file,
-                            n: rows,
+                            file: file.clone(),
+                            n: *rows,
                             strategy,
-                            json,
+                            json: *json,
                         },
                     }
                 }
                 AgentCommands::Query { file, sql, format, minify, limit } => agent::AgentArgs {
-                    subcommand: agent::AgentSubcommand::Query { file, sql, format, minify, limit },
+                    subcommand: agent::AgentSubcommand::Query {
+                        file: file.clone(),
+                        sql: sql.clone(),
+                        format: format.clone(),
+                        minify: *minify,
+                        limit: *limit,
+                    },
                 },
-                AgentCommands::Explain { sql } => {
-                    agent::AgentArgs { subcommand: agent::AgentSubcommand::Explain { sql } }
-                }
+                AgentCommands::Explain { sql } => agent::AgentArgs {
+                    subcommand: agent::AgentSubcommand::Explain { sql: sql.clone() },
+                },
             };
             agent::execute(agent_args)?;
         }
@@ -298,45 +302,62 @@ fn main() -> anyhow::Result<()> {
             clear_history,
         } => {
             find::execute(find::FindArgs {
-                query,
-                path,
-                file_type: r#type,
-                size,
-                mtime,
-                max_depth,
-                hidden,
-                no_ignore,
-                follow_links,
-                threads,
-                semantic,
-                index,
-                rebuild,
-                index_dir,
-                watch,
-                history,
-                recommend,
-                clear_history,
+                query: query.clone(),
+                path: path.clone(),
+                file_type: r#type.clone(),
+                size: size.clone(),
+                mtime: mtime.clone(),
+                max_depth: *max_depth,
+                hidden: *hidden,
+                no_ignore: *no_ignore,
+                follow_links: *follow_links,
+                threads: *threads,
+                semantic: *semantic,
+                index: *index,
+                rebuild: *rebuild,
+                index_dir: index_dir.clone(),
+                watch: *watch,
+                history: *history,
+                recommend: *recommend,
+                clear_history: *clear_history,
             })?;
         }
         Commands::Process { file, query, quality_check, output, format } => {
             process::execute(
-                &file,
+                file,
                 query.as_deref(),
-                quality_check,
+                *quality_check,
                 output.as_deref(),
                 format.as_deref(),
             )?;
         }
         Commands::Benchmark { suite, output, iterations, data_path, warmup } => {
             benchmark::execute(benchmark::BenchmarkArgs {
-                suite,
-                output,
-                iterations,
-                data_path,
-                warmup,
+                suite: suite.clone(),
+                output: output.clone(),
+                iterations: *iterations,
+                data_path: data_path.clone(),
+                warmup: *warmup,
             })?;
         }
     }
-
     Ok(())
+}
+
+fn main() {
+    // 解析命令行参数
+    let cli = Cli::parse();
+
+    // 初始化日志系统
+    let log_config = LogConfig::from_args(cli.verbose, cli.quiet, cli.no_color);
+    if let Err(e) = log_config.init() {
+        print_anyhow_error(&e.into(), cli.verbose, cli.no_color);
+        std::process::exit(1);
+    }
+
+    // 执行子命令
+    if let Err(e) = run_command(&cli) {
+        print_anyhow_error(&e, cli.verbose, cli.no_color);
+        std::process::exit(1);
+    }
 }

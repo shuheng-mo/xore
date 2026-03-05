@@ -1,6 +1,6 @@
 //! 数据解析器 - 基于 Polars 的高性能数据加载
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use polars::prelude::*;
 use std::fs::File;
 use std::io::Cursor;
@@ -61,11 +61,16 @@ impl DataParser {
 
         // 检查文件是否存在
         if !path.exists() {
-            return Err(anyhow::anyhow!("文件不存在: {:?}", path));
+            return Err(anyhow::anyhow!(
+                "文件不存在: {}\n💡 提示: 请检查路径是否正确，或使用 'ls' 命令确认文件存在",
+                path.display()
+            ));
         }
 
         // 获取文件大小
-        let file_size = std::fs::metadata(path)?.len();
+        let file_size = std::fs::metadata(path)
+            .with_context(|| format!("无法获取文件元数据: {}", path.display()))?
+            .len();
         tracing::debug!("文件大小: {} 字节", file_size);
 
         // 根据文件大小决定是否使用 mmap
@@ -88,7 +93,10 @@ impl DataParser {
             .with_skip_rows(self.config.skip_rows)
             .with_infer_schema_length(self.config.infer_schema_length)
             .finish()
-            .map_err(|e| anyhow::anyhow!("读取 CSV 失败: {}", e))?;
+            .map_err(|e| anyhow::anyhow!(
+                "读取 CSV 文件失败: {}\n  --> 文件: {}\n💡 提示: 请确认文件是有效的 CSV 格式，分隔符是否正确",
+                e, path.display()
+            ))?;
 
         Ok(df)
     }
@@ -98,11 +106,12 @@ impl DataParser {
         use memmap2::Mmap;
 
         // 打开文件
-        let file = File::open(path).map_err(|e| anyhow::anyhow!("无法打开文件: {}", e))?;
+        let file = File::open(path).with_context(|| format!("无法打开文件: {}", path.display()))?;
 
         // 创建内存映射
-        let mmap =
-            unsafe { Mmap::map(&file).map_err(|e| anyhow::anyhow!("内存映射失败: {}", e))? };
+        let mmap = unsafe {
+            Mmap::map(&file).with_context(|| format!("内存映射失败: {}", path.display()))?
+        };
 
         // 使用 Cursor 包装 mmap 数据
         let cursor = Cursor::new(&mmap[..]);
@@ -113,7 +122,13 @@ impl DataParser {
             .with_infer_schema_length(self.config.infer_schema_length)
             .into_reader_with_file_handle(cursor)
             .finish()
-            .map_err(|e| anyhow::anyhow!("读取 CSV 失败: {}", e))?
+            .map_err(|e| {
+                anyhow::anyhow!(
+                    "读取 CSV 文件失败 (mmap 模式): {}\n  --> 文件: {}",
+                    e,
+                    path.display()
+                )
+            })?
             .lazy();
 
         Ok(df)
@@ -125,12 +140,18 @@ impl DataParser {
 
         // 检查文件是否存在
         if !path.exists() {
-            return Err(anyhow::anyhow!("文件不存在: {:?}", path));
+            return Err(anyhow::anyhow!(
+                "文件不存在: {}\n💡 提示: 请检查路径是否正确，或使用 'ls' 命令确认文件存在",
+                path.display()
+            ));
         }
 
         let args = ScanArgsParquet::default();
         let df = LazyFrame::scan_parquet(path, args)
-            .map_err(|e| anyhow::anyhow!("读取 Parquet 失败: {}", e))?;
+            .map_err(|e| anyhow::anyhow!(
+                "读取 Parquet 文件失败: {}\n  --> 文件: {}\n💡 提示: 请确认文件是有效的 Parquet 格式",
+                e, path.display()
+            ))?;
 
         Ok(df)
     }
@@ -142,29 +163,30 @@ impl DataParser {
         match extension.as_str() {
             "csv" => self.read_csv_lazy(path),
             "parquet" => self.read_parquet_lazy(path),
-            _ => {
-                Err(anyhow::anyhow!("不支持的文件格式: {}。支持的格式: csv, parquet", extension)
-                    .into())
-            }
+            _ => Err(anyhow::anyhow!(
+                "不支持的文件格式: '{}'\n  --> 文件: {}\n💡 提示: 支持的格式为 csv 和 parquet",
+                extension,
+                path.display()
+            )),
         }
     }
 
     /// 读取并收集为 DataFrame（用于小数据集或需要立即执行的场景）
     pub fn read_csv(&self, path: &Path) -> Result<DataFrame> {
         let lf = self.read_csv_lazy(path)?;
-        lf.collect().map_err(|e| anyhow::anyhow!("收集 DataFrame 失败: {}", e).into())
+        lf.collect().with_context(|| format!("执行 CSV 查询失败: {}", path.display()))
     }
 
     /// 读取 Parquet 并收集为 DataFrame
     pub fn read_parquet(&self, path: &Path) -> Result<DataFrame> {
         let lf = self.read_parquet_lazy(path)?;
-        lf.collect().map_err(|e| anyhow::anyhow!("收集 DataFrame 失败: {}", e).into())
+        lf.collect().with_context(|| format!("执行 Parquet 查询失败: {}", path.display()))
     }
 
     /// 自动识别格式并读取为 DataFrame
     pub fn read(&self, path: &Path) -> Result<DataFrame> {
         let lf = self.read_lazy(path)?;
-        lf.collect().map_err(|e| anyhow::anyhow!("收集 DataFrame 失败: {}", e).into())
+        lf.collect().with_context(|| format!("执行查询失败: {}", path.display()))
     }
 }
 

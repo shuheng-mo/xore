@@ -78,13 +78,20 @@ impl Searcher {
 
     /// 使用自定义配置创建搜索器
     pub fn with_config(index_path: &Path, config: SearchConfig) -> Result<Self> {
-        let (index, schema) = open_index(index_path)?;
+        let (index, schema) = open_index(index_path).with_context(|| {
+            format!(
+                "无法打开搜索索引: {}\n💡 提示: 请先运行 'xore f --index' 建立索引，或使用 '--rebuild' 重建",
+                index_path.display()
+            )
+        })?;
 
         let reader = index
             .reader_builder()
             .reload_policy(ReloadPolicy::OnCommitWithDelay)
             .try_into()
-            .with_context(|| "Failed to create index reader")?;
+            .with_context(|| {
+                "无法创建索引读取器\n💡 提示: 索引可能已损坏，尝试运行 'xore f --rebuild' 重建"
+            })?;
 
         Ok(Self { index, schema, reader, config })
     }
@@ -104,14 +111,17 @@ impl Searcher {
         let query_parser = QueryParser::for_index(&self.index, vec![self.schema.content_field()]);
 
         // 解析查询
-        let query = query_parser
-            .parse_query(query_str)
-            .with_context(|| format!("Failed to parse query: {}", query_str))?;
+        let query = query_parser.parse_query(query_str).with_context(|| {
+            format!(
+                "查询解析失败: '{}'\n💡 提示: 检查查询语法，特殊字符需要转义（如 +, -, :, *, ?）",
+                query_str
+            )
+        })?;
 
         // 执行搜索
         let top_docs = searcher
             .search(&query, &TopDocs::with_limit(limit))
-            .with_context(|| "Search failed")?;
+            .with_context(|| format!("搜索执行失败: '{}'", query_str))?;
 
         debug!("Found {} results", top_docs.len());
 
@@ -150,9 +160,9 @@ impl Searcher {
         let query_parser = QueryParser::for_index(&self.index, vec![self.schema.content_field()]);
 
         // 解析内容查询
-        let content_query = query_parser
-            .parse_query(query_str)
-            .with_context(|| format!("Failed to parse query: {}", query_str))?;
+        let content_query = query_parser.parse_query(query_str).with_context(|| {
+            format!("查询解析失败: '{}'\n💡 提示: 检查查询语法，特殊字符需要转义", query_str)
+        })?;
 
         // 如果有文件类型过滤，创建组合查询
         let final_query: Box<dyn tantivy::query::Query> = if let Some(ft) = file_type {
@@ -170,7 +180,7 @@ impl Searcher {
         // 执行搜索
         let top_docs = searcher
             .search(&*final_query, &TopDocs::with_limit(limit))
-            .with_context(|| "Search failed")?;
+            .with_context(|| format!("带过滤器的搜索执行失败: '{}'", query_str))?;
 
         // 创建高亮生成器
         let snippet_generator = if self.config.enable_highlight {
