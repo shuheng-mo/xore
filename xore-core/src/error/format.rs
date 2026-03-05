@@ -329,11 +329,8 @@ mod tests {
 
     #[test]
     fn test_format_resource_limit() {
-        let err = XoreError::ResourceLimit {
-            resource: "内存".to_string(),
-            current: 2048,
-            max: 1024,
-        };
+        let err =
+            XoreError::ResourceLimit { resource: "内存".to_string(), current: 2048, max: 1024 };
 
         let config = ErrorFormatterConfig { verbose: false, use_color: false, show_hints: false };
         let formatter = ErrorFormatter::new(config);

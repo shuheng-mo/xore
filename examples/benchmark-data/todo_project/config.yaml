@@ -1,0 +1,7 @@
+# Configuration
+# TODO: Add environment-specific config
+# TODO: Add validation
+
+database:
+  host: localhost
+  port: 5432

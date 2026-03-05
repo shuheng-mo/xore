@@ -443,6 +443,7 @@ mod error_handling_tests {
     }
 
     #[test]
+    #[cfg(not(windows))]
     fn test_invalid_index_path() {
         // 尝试在无效路径创建索引
         let result = IndexBuilder::new(Path::new("/root/definitely/not/allowed/index"));

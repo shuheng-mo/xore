@@ -41,6 +41,15 @@
     - `xore-search/src/query.rs`：查询解析/执行失败附带语法提示
   - **测试覆盖**：43 个错误处理测试全部通过（新增 28 个）
 
+- **Day 27: 文档与示例完善**
+  - README 文档完善：添加项目定位和性能数据
+  - 命令文档完善：`docs/commands/` 下所有命令文档更新
+  - 新增 `docs/commands/agent.md`: Agent 命令文档
+  - 示例目录完善：`examples/benchmark-data/`, `examples/benchmark-results/`
+  - 帮助信息完善：所有命令 `--help` 输出完整且清晰
+  - Roo Code Skills 文档：`.roo/skills/*/SKILL.md` 完善
+  - **MVP 开发完成总结**：27/28 天任务完成
+
 - **Day 26: Agent-Native 接口与 Roo Code Skills 集成** ([#day26](plans/agent-module-plan.md))
   - **Agent 命令模块** (`xore-cli/src/commands/agent.rs`)：
     - 实现 `xore agent` 命令，提供 5 个子命令：
@@ -184,6 +193,33 @@
   - 结果渲染：表格化输出，最多显示 100 行
   - **测试覆盖**：9 个单元测试全部通过
   - **性能优化**：LazyFrame 延迟执行 + 零拷贝读取
+
+- **Day 14: 测试与基准**
+  - 创建完整的基准测试数据集（`examples/benchmark-data/`）
+  - 自动化基准测试脚本（`examples/benchmark-results/run_benchmark.sh`）
+  - 测试覆盖：130+ 单元测试 + 30+ 集成测试全部通过
+  - 代码质量检查：cargo fmt + clippy + check 通过
+
+- **Day 12-13: 搜索优化**
+  - 模糊匹配实现（Levenshtein 距离 <2）
+  - 前缀搜索实现（基于 FST）
+  - 文件类型权重调整（代码 > 文档 > 日志）
+  - 批量索引优化和缓存优化
+
+- **Day 10-11: 增量索引与文件监控**
+  - 增量索引模块（`xore-search/src/incremental.rs`）
+  - 文件监控模块（`xore-search/src/watcher.rs`，基于 notify crate）
+  - 事件防抖（500ms）
+  - CLI 集成：`xore f "error" --index --watch`
+  - Bug 修复：Watch 模式增量索引功能
+
+- **Day 8-9: Tantivy 全文搜索引擎集成**
+  - Tantivy 索引核心模块（`xore-search/src/indexer.rs`）
+  - 查询引擎（`xore-search/src/query.rs`）
+  - 自定义中英文分词器（`xore-search/src/tokenizer.rs`）
+  - 支持 BM25 排序算法
+  - 支持分页查询和高亮显示
+  - 测试覆盖：20 个单元测试全部通过
 
 - **Day 15-16: Polars 数据处理引擎集成** ([#day15](plans/day15-plan.md))
   - 实现 `DataParser` 模块，支持 CSV 和 Parquet 文件的高性能读取

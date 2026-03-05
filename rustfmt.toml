@@ -3,6 +3,6 @@
 max_width = 100
 tab_spaces = 4
 use_small_heuristics = "Max"
-imports_granularity = "Preserve"
+# imports_granularity = "Preserve" # 仅在 nightly 下可用，暂时注释掉以兼容 stable
 edition = "2021"
 newline_style = "Unix"

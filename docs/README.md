@@ -54,10 +54,12 @@ cargo install xore
 docs/
 ├── README.md              # 本文件 - 文档索引
 ├── getting-started.md     # 快速入门指南
+├── semantic-search-guide.md # 语义搜索指南
 ├── commands/              # 命令参考
 │   ├── README.md          # 命令概览
 │   ├── find.md            # find 命令详解
 │   ├── process.md         # process 命令详解
+│   ├── agent.md          # agent 命令详解
 │   └── benchmark.md       # benchmark 命令详解
 └── reference/             # 技术参考
     ├── filters.md         # 过滤器语法参考
@@ -75,7 +77,18 @@ docs/
 - 测试覆盖率: >80%
 - **Agent-Native 定位**：通过计算下推和结构化摘要降低 90%+ Token 消耗
 
-## 最新功能 (Day 17-18)
+## 最新功能 (Day 27)
+
+### 文档与示例完善 ✅
+
+经过 27 天的开发，XORE MVP 已完成所有核心功能：
+
+- **Week 1**: Core Framework（CLI、文件扫描、日志、错误处理）
+- **Week 2**: Search Engine（Tantivy、增量索引、搜索优化）
+- **Week 3**: Data Reactor（Polars、SQL、SIMD、导出）
+- **Week 4**: AI & Polishing（ONNX、语义搜索、Agent、文档）
+
+**总计**: 27/28 天任务完成 ✅
 
 ### SQL 查询引擎 ✅
 

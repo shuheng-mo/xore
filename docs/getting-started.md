@@ -53,6 +53,9 @@ xore find --type csv --size ">1MB"
 
 # 搜索最近 7 天修改的文件
 xore find --mtime "-7d"
+
+# 搜索历史与智能推荐
+xore find --history
 ```
 
 ### 2. 数据处理
@@ -67,8 +70,11 @@ xore process data.parquet
 # 检查数据质量（缺失值、重复行检测）
 xore process data.csv --quality-check
 
-# 执行 SQL 查询（开发中）
-xore process data.csv "SELECT * FROM self WHERE age > 30"
+# 执行 SQL 查询（基于 Polars SQL 引擎）
+xore process data.csv "SELECT * FROM data WHERE age > 30"
+
+# 导出查询结果
+xore p data.csv "SELECT * FROM data WHERE age > 30" -o output.csv
 ```
 
 **性能说明：**
@@ -76,8 +82,27 @@ xore process data.csv "SELECT * FROM self WHERE age > 30"
 - 大文件（>1MB）自动使用零拷贝内存映射（`memmap2`）
 - LazyFrame 惰性执行，优化内存占用
 - 自动 Schema 推断（默认扫描前 1000 行）
+- **SIMD 加速**：数值计算（求和、均值等）性能提升 2-3x
 
-### 3. 性能测试
+### 3. Agent-Native 接口 🚀
+
+专为 AI Agent 设计，通过计算下推和结构化摘要降低 90%+ Token 消耗。
+
+```bash
+# 初始化 Agent 提示词
+xore agent init claude
+
+# 获取数据结构（零拷贝）
+xore agent schema data.csv --json
+
+# 智能数据采样（保持数据分布）
+xore agent sample data.csv 100 --strategy smart
+
+# SQL 查询（JSON 输出）
+xore agent query data.csv "SELECT * FROM data LIMIT 10"
+```
+
+### 4. 性能测试
 
 ```bash
 # 运行所有基准测试
@@ -86,7 +111,7 @@ xore benchmark
 # 只测试文件扫描性能
 xore benchmark --suite scan
 
-# 测试内存分配性能
+# 测试内存分配性能（mimalloc）
 xore benchmark --suite alloc
 
 # 输出 JSON 格式结果
@@ -221,6 +246,18 @@ xore find "test" --index --watch -t rs
 | 增量索引延迟 | <50ms | ~45ms |
 | 防抖等待时间 | 500ms | 500ms |
 
+### 场景 7：智能推荐与搜索历史
+
+XORE 会自动记录你的搜索习惯，并提供智能推荐：
+
+```bash
+# 查看搜索历史与推荐
+xore find --history
+
+# 根据历史习惯快速搜索
+xore find "err" --history
+```
+
 ## 全局选项
 
 所有命令都支持以下全局选项：
@@ -241,6 +278,7 @@ xore find "test" --index --watch -t rs
 |---------|------|
 | `xore find` | `xore f` |
 | `xore process` | `xore p` |
+| `xore agent` | `xore a` |
 | `xore benchmark` | `xore bench` |
 
 ## 下一步

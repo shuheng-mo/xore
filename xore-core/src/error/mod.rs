@@ -178,12 +178,8 @@ pub trait XoreErrorExt {
     fn context(self, msg: impl Into<String>) -> XoreError;
 
     /// 添加带位置的上下文信息
-    fn with_location(
-        self,
-        file: impl Into<String>,
-        line: u32,
-        msg: impl Into<String>,
-    ) -> XoreError;
+    fn with_location(self, file: impl Into<String>, line: u32, msg: impl Into<String>)
+        -> XoreError;
 
     /// 获取错误提示
     fn hint(&self) -> Option<ErrorHint>;
@@ -204,13 +200,8 @@ impl XoreErrorExt for XoreError {
     ) -> XoreError {
         let file_str = file.into();
         let current_msg = self.to_string();
-        let new_msg = format!(
-            "{}\n    --> {}:{}\n    |    {}",
-            current_msg,
-            file_str,
-            line,
-            msg.into()
-        );
+        let new_msg =
+            format!("{}\n    --> {}:{}\n    |    {}", current_msg, file_str, line, msg.into());
         XoreError::Other(new_msg)
     }
 
@@ -237,16 +228,15 @@ impl XoreErrorExt for XoreError {
                     .with_command("xore f --rebuild 重建索引后重试"),
             ),
             XoreError::PermissionDenied(_) => Some(
-                ErrorHint::new("权限不足，请检查文件权限")
-                    .with_command("chmod 或 sudo 调整权限"),
+                ErrorHint::new("权限不足，请检查文件权限").with_command("chmod 或 sudo 调整权限"),
             ),
             XoreError::ParseError(_) => Some(
                 ErrorHint::new("文件解析错误，请检查文件格式是否正确")
                     .with_command("file <文件名> 查看文件类型"),
             ),
-            XoreError::ValidationError(_) => Some(ErrorHint::new(
-                "输入验证失败，请检查输入数据是否符合要求",
-            )),
+            XoreError::ValidationError(_) => {
+                Some(ErrorHint::new("输入验证失败，请检查输入数据是否符合要求"))
+            }
             XoreError::Timeout(_) => Some(
                 ErrorHint::new("操作超时，请检查网络连接或增加超时时间")
                     .with_doc("docs/reference/configuration.md"),
@@ -316,10 +306,7 @@ impl ErrorChain {
     }
 
     /// 添加错误来源
-    pub fn with_source<E: std::error::Error + Send + Sync + 'static>(
-        mut self,
-        source: E,
-    ) -> Self {
+    pub fn with_source<E: std::error::Error + Send + Sync + 'static>(mut self, source: E) -> Self {
         self.source = Some(Box::new(source));
         self
     }
@@ -360,10 +347,7 @@ mod tests {
         assert_eq!(XoreError::SqlError("test".to_string()).error_code(), "SQL_ERROR");
         assert_eq!(XoreError::SearchError("test".to_string()).error_code(), "SEARCH_ERROR");
         assert_eq!(XoreError::ParseError("test".to_string()).error_code(), "PARSE_ERROR");
-        assert_eq!(
-            XoreError::ValidationError("test".to_string()).error_code(),
-            "VALIDATION_ERROR"
-        );
+        assert_eq!(XoreError::ValidationError("test".to_string()).error_code(), "VALIDATION_ERROR");
         assert_eq!(XoreError::Timeout("test".to_string()).error_code(), "TIMEOUT");
         assert_eq!(
             XoreError::PermissionDenied("test".to_string()).error_code(),
@@ -398,9 +382,7 @@ mod tests {
 
     #[test]
     fn test_error_context() {
-        let ctx = ErrorContext::new()
-            .with_message("测试上下文")
-            .with_message("第二条消息");
+        let ctx = ErrorContext::new().with_message("测试上下文").with_message("第二条消息");
 
         assert_eq!(ctx.messages().len(), 2);
         assert_eq!(ctx.messages()[0], "测试上下文");
@@ -408,9 +390,7 @@ mod tests {
 
     #[test]
     fn test_error_context_with_location() {
-        let ctx = ErrorContext::new()
-            .with_message("测试")
-            .with_location("src/main.rs", 42);
+        let ctx = ErrorContext::new().with_message("测试").with_location("src/main.rs", 42);
 
         let (file, line) = ctx.location().unwrap();
         assert_eq!(file, "src/main.rs");
@@ -441,9 +421,8 @@ mod tests {
 
     #[test]
     fn test_error_hint_format() {
-        let hint = ErrorHint::new("测试提示")
-            .with_command("xore --help")
-            .with_doc("docs/README.md");
+        let hint =
+            ErrorHint::new("测试提示").with_command("xore --help").with_doc("docs/README.md");
 
         let formatted = hint.format();
         assert!(formatted.contains("测试提示"));

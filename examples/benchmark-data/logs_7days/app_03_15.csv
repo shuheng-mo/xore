@@ -1,0 +1,91 @@
+timestamp,level,module,message,request_id
+2026-01-03T15:0:31Z,info,Scheduler,Data synchronized,req_224705015
+2026-01-03T15:8:27Z,info,Scheduler,Health check passed,req_307587240
+2026-01-03T15:40:14Z,info,AuthService,Configuration reloaded,req_142367514
+2026-01-03T15:22:7Z,debug,CacheManager,Cache updated,req_37796885
+2026-01-03T15:32:17Z,info,Scheduler,Job completed,req_3038021862
+2026-01-03T15:55:17Z,warning,CacheManager,High memory usage detected,req_2713513851
+2026-01-03T15:34:34Z,info,FileStorage,Configuration reloaded,req_220404740
+2026-01-03T15:21:23Z,warning,Scheduler,High memory usage detected,req_2458226097
+2026-01-03T15:25:36Z,info,FileStorage,Request processed successfully,req_2408320432
+2026-01-03T15:4:9Z,debug,NotificationService,Cache updated,req_309515996
+2026-01-03T15:38:54Z,info,FileStorage,Job completed,req_1342131323
+2026-01-03T15:50:29Z,debug,APIGateway,Configuration reloaded,req_461523086
+2026-01-03T15:42:12Z,warning,CacheManager,Disk space low,req_1135917425
+2026-01-03T15:53:39Z,error,APIGateway,Session expired,req_947918737
+2026-01-03T15:5:43Z,debug,MessageQueue,Job completed,req_825817240
+2026-01-03T15:40:30Z,warning,DatabasePool,Slow query detected,req_3207411357
+2026-01-03T15:22:43Z,debug,AuthService,Configuration reloaded,req_2602219391
+2026-01-03T15:12:53Z,debug,APIGateway,Configuration reloaded,req_978118504
+2026-01-03T15:46:28Z,info,APIGateway,User logged in,req_26083702
+2026-01-03T15:3:27Z,info,FileStorage,Health check passed,req_15590865
+2026-01-03T15:36:9Z,error,APIGateway,Database connection timeout,req_232127732
+2026-01-03T15:22:0Z,debug,FileStorage,User logged in,req_1713225434
+2026-01-03T15:27:36Z,warning,MessageQueue,Deprecated API called,req_795113832
+2026-01-03T15:47:41Z,info,FileStorage,Request processed successfully,req_1749223428
+2026-01-03T15:13:49Z,info,AuthService,Health check passed,req_148505003
+2026-01-03T15:14:29Z,warning,CacheManager,Retry attempt failed,req_1894025729
+2026-01-03T15:53:49Z,warning,AuthService,Deprecated API called,req_2853116161
+2026-01-03T15:33:19Z,info,DatabasePool,Request processed successfully,req_2304920343
+2026-01-03T15:8:7Z,info,NotificationService,Request processed successfully,req_843620590
+2026-01-03T15:14:27Z,info,APIGateway,Cache updated,req_2534310922
+2026-01-03T15:26:35Z,debug,NotificationService,Data synchronized,req_1304320311
+2026-01-03T15:44:45Z,warning,Scheduler,Retry attempt failed,req_275619229
+2026-01-03T15:31:22Z,info,NotificationService,Configuration reloaded,req_2666023850
+2026-01-03T15:27:25Z,warning,NotificationService,Slow query detected,req_106415817
+2026-01-03T15:31:38Z,warning,Scheduler,Certificate expiring soon,req_2500513583
+2026-01-03T15:57:32Z,info,NotificationService,Request processed successfully,req_2704627655
+2026-01-03T15:7:8Z,info,NotificationService,Cache updated,req_3070719878
+2026-01-03T15:22:21Z,info,DatabasePool,Configuration reloaded,req_1823728785
+2026-01-03T15:48:37Z,info,APIGateway,Cache updated,req_1170916440
+2026-01-03T15:5:46Z,debug,APIGateway,Configuration reloaded,req_125495052
+2026-01-03T15:21:59Z,warning,DatabasePool,Deprecated API called,req_2228030425
+2026-01-03T15:58:19Z,debug,Scheduler,Configuration reloaded,req_5510000
+2026-01-03T15:47:55Z,info,AuthService,Health check passed,req_787112671
+2026-01-03T15:44:31Z,debug,Scheduler,Configuration reloaded,req_614428607
+2026-01-03T15:46:43Z,info,Scheduler,Data synchronized,req_2104625301
+2026-01-03T15:23:35Z,info,AuthService,Health check passed,req_263184539
+2026-01-03T15:35:12Z,info,DatabasePool,Cache updated,req_1205526694
+2026-01-03T15:33:1Z,error,Scheduler,Resource not found,req_2888031568
+2026-01-03T15:52:41Z,info,NotificationService,User logged in,req_2051426020
+2026-01-03T15:24:1Z,info,NotificationService,Cache updated,req_106545022
+2026-01-03T15:10:47Z,info,FileStorage,Cache updated,req_1201817236
+2026-01-03T15:53:59Z,warning,NotificationService,Certificate expiring soon,req_2557016111
+2026-01-03T15:34:58Z,debug,AuthService,Data synchronized,req_298599946
+2026-01-03T15:19:26Z,error,NotificationService,Failed to authenticate user,req_1242318385
+2026-01-03T15:18:9Z,warning,AuthService,Certificate expiring soon,req_2893826698
+2026-01-03T15:40:20Z,info,CacheManager,Configuration reloaded,req_2346320899
+2026-01-03T15:29:8Z,info,FileStorage,Cache updated,req_3069413284
+2026-01-03T15:1:42Z,info,Scheduler,User logged in,req_318396394
+2026-01-03T15:40:37Z,info,MessageQueue,User logged in,req_132326075
+2026-01-03T15:50:21Z,error,AuthService,Invalid API key provided,req_2999224574
+2026-01-03T15:17:20Z,info,CacheManager,Configuration reloaded,req_2184728451
+2026-01-03T15:28:44Z,info,MessageQueue,Metrics collected,req_3210426806
+2026-01-03T15:50:35Z,debug,AuthService,Cache updated,req_114325785
+2026-01-03T15:3:41Z,info,CacheManager,Data synchronized,req_239515582
+2026-01-03T15:2:32Z,info,Scheduler,Data synchronized,req_1388928604
+2026-01-03T15:33:33Z,info,DatabasePool,Health check passed,req_2163310935
+2026-01-03T15:17:30Z,info,DatabasePool,Cache updated,req_1316323376
+2026-01-03T15:27:2Z,warning,FileStorage,Slow query detected,req_901516371
+2026-01-03T15:59:25Z,info,CacheManager,Job completed,req_154099771
+2026-01-03T15:43:8Z,debug,AuthService,User logged in,req_130866059
+2026-01-03T15:21:25Z,info,DatabasePool,Job completed,req_3215930772
+2026-01-03T15:29:59Z,error,DatabasePool,Failed to authenticate user,req_3034330211
+2026-01-03T15:43:4Z,info,CacheManager,Data synchronized,req_386922939
+2026-01-03T15:41:10Z,info,MessageQueue,User logged in,req_1995923521
+2026-01-03T15:33:21Z,info,AuthService,User logged in,req_391914169
+2026-01-03T15:10:36Z,info,CacheManager,Data synchronized,req_1113626349
+2026-01-03T15:10:28Z,info,MessageQueue,Health check passed,req_2131920982
+2026-01-03T15:51:42Z,warning,AuthService,Deprecated API called,req_576226028
+2026-01-03T15:19:52Z,info,APIGateway,User logged in,req_425222023
+2026-01-03T15:24:24Z,error,NotificationService,Database connection timeout,req_488330064
+2026-01-03T15:58:18Z,error,NotificationService,Session expired,req_2736117085
+2026-01-03T15:1:23Z,debug,AuthService,Configuration reloaded,req_1206414212
+2026-01-03T15:4:42Z,warning,CacheManager,Connection pool near capacity,req_180656537
+2026-01-03T15:25:56Z,info,FileStorage,Cache updated,req_61467339
+2026-01-03T15:30:48Z,info,MessageQueue,Data synchronized,req_1009519095
+2026-01-03T15:23:40Z,info,Scheduler,User logged in,req_1999225073
+2026-01-03T15:56:55Z,info,APIGateway,Job completed,req_76547338
+2026-01-03T15:12:9Z,debug,NotificationService,Configuration reloaded,req_1783939
+2026-01-03T15:47:52Z,info,FileStorage,Cache updated,req_202067082
+2026-01-03T15:29:17Z,debug,CacheManager,Metrics collected,req_8382342

@@ -1,0 +1,62 @@
+timestamp,level,module,message,request_id
+2026-01-01T09:7:6Z,debug,DatabasePool,User logged in,req_244369907
+2026-01-01T09:8:53Z,info,AuthService,Configuration reloaded,req_260779003
+2026-01-01T09:34:47Z,debug,DatabasePool,Cache updated,req_206061954
+2026-01-01T09:32:37Z,info,APIGateway,Cache updated,req_1294115462
+2026-01-01T09:39:11Z,warning,Scheduler,Disk space low,req_1389030938
+2026-01-01T09:49:10Z,info,Scheduler,Metrics collected,req_106117420
+2026-01-01T09:5:45Z,error,Scheduler,Database connection timeout,req_1156219938
+2026-01-01T09:18:31Z,info,AuthService,Metrics collected,req_2108813040
+2026-01-01T09:38:26Z,info,MessageQueue,Request processed successfully,req_3112327958
+2026-01-01T09:16:11Z,info,AuthService,Metrics collected,req_174213430
+2026-01-01T09:37:57Z,info,CacheManager,Metrics collected,req_1486427293
+2026-01-01T09:45:15Z,debug,AuthService,Request processed successfully,req_71328712
+2026-01-01T09:54:14Z,debug,DatabasePool,Health check passed,req_2092522570
+2026-01-01T09:18:46Z,info,Scheduler,Job completed,req_214313725
+2026-01-01T09:55:16Z,debug,APIGateway,Request processed successfully,req_3010320572
+2026-01-01T09:29:16Z,debug,MessageQueue,Configuration reloaded,req_931017195
+2026-01-01T09:8:42Z,warning,NotificationService,Slow query detected,req_165779585
+2026-01-01T09:34:1Z,info,FileStorage,Data synchronized,req_326769433
+2026-01-01T09:26:9Z,debug,APIGateway,User logged in,req_3228530189
+2026-01-01T09:17:34Z,info,MessageQueue,User logged in,req_1737218350
+2026-01-01T09:27:0Z,info,Scheduler,Cache updated,req_88605092
+2026-01-01T09:4:20Z,info,AuthService,Data synchronized,req_1005928453
+2026-01-01T09:48:32Z,warning,DatabasePool,High memory usage detected,req_292359350
+2026-01-01T09:7:28Z,info,AuthService,Cache updated,req_223136314
+2026-01-01T09:4:56Z,warning,AuthService,Cache miss rate increasing,req_108443840
+2026-01-01T09:11:31Z,info,NotificationService,Cache updated,req_2414914582
+2026-01-01T09:29:39Z,info,NotificationService,Metrics collected,req_3265011690
+2026-01-01T09:22:46Z,debug,MessageQueue,Job completed,req_924418899
+2026-01-01T09:2:8Z,info,MessageQueue,Health check passed,req_2865910788
+2026-01-01T09:31:16Z,debug,CacheManager,Metrics collected,req_2623411133
+2026-01-01T09:44:2Z,info,APIGateway,Metrics collected,req_528927849
+2026-01-01T09:14:37Z,info,NotificationService,Metrics collected,req_53697115
+2026-01-01T09:39:18Z,error,APIGateway,Failed to authenticate user,req_25293412
+2026-01-01T09:56:36Z,info,AuthService,Metrics collected,req_74409660
+2026-01-01T09:13:37Z,info,AuthService,Data synchronized,req_2698214504
+2026-01-01T09:7:27Z,info,DatabasePool,Request processed successfully,req_324447961
+2026-01-01T09:24:48Z,debug,NotificationService,Job completed,req_136021376
+2026-01-01T09:7:5Z,info,NotificationService,Metrics collected,req_2039415961
+2026-01-01T09:18:54Z,info,FileStorage,Job completed,req_2100810372
+2026-01-01T09:54:25Z,info,AuthService,Data synchronized,req_745314809
+2026-01-01T09:54:40Z,info,APIGateway,Health check passed,req_513129083
+2026-01-01T09:49:46Z,info,FileStorage,User logged in,req_2060927187
+2026-01-01T09:37:23Z,debug,MessageQueue,Data synchronized,req_446220727
+2026-01-01T09:20:56Z,info,DatabasePool,Request processed successfully,req_1850917459
+2026-01-01T09:9:54Z,info,APIGateway,Health check passed,req_1646930956
+2026-01-01T09:44:12Z,warning,AuthService,Connection pool near capacity,req_1192523479
+2026-01-01T09:3:46Z,info,NotificationService,User logged in,req_753123704
+2026-01-01T09:46:54Z,info,AuthService,Request processed successfully,req_1037012171
+2026-01-01T09:49:1Z,info,APIGateway,User logged in,req_2357525709
+2026-01-01T09:13:59Z,info,MessageQueue,Data synchronized,req_1371328402
+2026-01-01T09:58:0Z,warning,CacheManager,Certificate expiring soon,req_27009315
+2026-01-01T09:36:56Z,info,FileStorage,Data synchronized,req_2744827772
+2026-01-01T09:16:52Z,debug,FileStorage,User logged in,req_25911638
+2026-01-01T09:57:41Z,info,NotificationService,Health check passed,req_651213925
+2026-01-01T09:17:35Z,info,Scheduler,User logged in,req_464711229
+2026-01-01T09:56:9Z,info,Scheduler,Job completed,req_15923900
+2026-01-01T09:13:33Z,info,APIGateway,Request processed successfully,req_2956621793
+2026-01-01T09:32:8Z,info,DatabasePool,Metrics collected,req_2915531897
+2026-01-01T09:3:12Z,debug,MessageQueue,Metrics collected,req_264529461
+2026-01-01T09:42:5Z,debug,FileStorage,Data synchronized,req_51895245
+2026-01-01T09:38:32Z,warning,FileStorage,Deprecated API called,req_164832139
