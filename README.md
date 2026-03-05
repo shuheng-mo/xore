@@ -146,7 +146,7 @@ git clone https://github.com/shuheng-mo/xore.git
 cd xore
 ```
 
-1. **编译安装**
+1. **编译**
 
 ```bash
 # Debug 构建（开发调试）
@@ -169,23 +169,6 @@ xore --version
 # 输出：xore 1.0.0
 ```
 
-```bash
-cp .env.example .env
-# 编辑 .env 文件，填入必要的配置信息
-```
-
-1. **启动开发服务器**
-
-```bash
-npm run dev
-# 或
-yarn dev
-```
-
-1. **访问应用**
-
-打开浏览器访问 [http://localhost:3000](http://localhost:3000)
-
 ---
 
 ## 详细使用文档
@@ -203,34 +186,44 @@ xore/
 │   │   ├── main.rs       # 程序入口
 │   │   ├── commands/     # 命令实现
 │   │   │   ├── find.rs   # 查找命令
-│   │   │   └── process.rs # 处理命令
+│   │   │   ├── process.rs # 数据处理命令
+│   │   │   ├── agent.rs  # Agent 命令
+│   │   │   └── benchmark.rs # 基准测试命令
 │   │   └── ui/           # 用户界面
 │   └── Cargo.toml
 │
 ├── xore-core/             # 核心模块
 │   ├── src/
 │   │   ├── config.rs     # 配置管理
-│   │   ├── error.rs      # 错误处理
+│   │   ├── error/        # 错误处理系统
+│   │   ├── history.rs    # 搜索历史
+│   │   ├── recommendation.rs # 智能推荐
 │   │   └── types.rs      # 公共类型
 │   └── Cargo.toml
 │
 ├── xore-search/           # 搜索引擎
 │   ├── src/
 │   │   ├── indexer.rs    # 索引构建
+│   │   ├── incremental.rs # 增量索引
 │   │   ├── query.rs      # 查询处理
+│   │   ├── scanner.rs    # 文件扫描
+│   │   ├── tokenizer.rs  # 分词器
 │   │   └── watcher.rs    # 文件监控
 │   └── Cargo.toml
 │
 ├── xore-process/          # 数据处理
 │   ├── src/
+│   │   ├── parser.rs     # 数据解析
 │   │   ├── sql.rs        # SQL 引擎
 │   │   ├── profiler.rs   # 数据分析
+│   │   ├── simd.rs       # SIMD 数值优化
 │   │   └── export.rs     # 导出功能
 │   └── Cargo.toml
 │
 ├── xore-ai/               # AI 模块
 │   ├── src/
 │   │   ├── embedding.rs  # 向量嵌入
+│   │   ├── search.rs     # 向量搜索引擎
 │   │   └── tokenizer.rs  # 分词器
 │   └── Cargo.toml
 │
@@ -247,8 +240,7 @@ xore/
 │   ├── getting-started.md # 快速入门
 │   ├── commands/         # 命令参考
 │   └── reference/        # 配置参考
-├── assets/               # 项目资源
-└── .github/              # GitHub 配置
+└── assets/               # 项目资源（图标等）
 ```
 
 ---
@@ -433,8 +425,6 @@ cargo tarpaulin --out Html
 - 索引: 约为原始数据的 15-20%
 - 运行时: 峰值内存 < 数据大小的 2 倍
 - 增量更新: 批量提交优化内存使用
-
-详细性能报告：[Performance Report](plans/performance-report.md)
 
 *测试环境：macOS (Apple Silicon), mimalloc 分配器*
 
