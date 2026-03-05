@@ -1,0 +1,202 @@
+---
+errors:
+  - id: 0
+    code: E5940
+    message: Error occurred
+    level: critical
+  - id: 1
+    code: E1408
+    message: Error occurred
+    level: warning
+  - id: 2
+    code: E9182
+    message: Error occurred
+    level: critical
+  - id: 3
+    code: E8504
+    message: Error occurred
+    level: warning
+  - id: 4
+    code: E3556
+    message: Error occurred
+    level: critical
+  - id: 5
+    code: E9948
+    message: Error occurred
+    level: info
+  - id: 6
+    code: E6427
+    message: Error occurred
+    level: info
+  - id: 7
+    code: E5842
+    message: Error occurred
+    level: warning
+  - id: 8
+    code: E5748
+    message: Error occurred
+    level: info
+  - id: 9
+    code: E3409
+    message: Error occurred
+    level: info
+  - id: 10
+    code: E8243
+    message: Error occurred
+    level: warning
+  - id: 11
+    code: E2840
+    message: Error occurred
+    level: info
+  - id: 12
+    code: E8847
+    message: Error occurred
+    level: critical
+  - id: 13
+    code: E3284
+    message: Error occurred
+    level: info
+  - id: 14
+    code: E2914
+    message: Error occurred
+    level: warning
+  - id: 15
+    code: E1406
+    message: Error occurred
+    level: warning
+  - id: 16
+    code: E4610
+    message: Error occurred
+    level: warning
+  - id: 17
+    code: E6855
+    message: Error occurred
+    level: critical
+  - id: 18
+    code: E6347
+    message: Error occurred
+    level: critical
+  - id: 19
+    code: E4197
+    message: Error occurred
+    level: info
+  - id: 20
+    code: E9625
+    message: Error occurred
+    level: critical
+  - id: 21
+    code: E5553
+    message: Error occurred
+    level: critical
+  - id: 22
+    code: E1369
+    message: Error occurred
+    level: critical
+  - id: 23
+    code: E9821
+    message: Error occurred
+    level: warning
+  - id: 24
+    code: E2431
+    message: Error occurred
+    level: info
+  - id: 25
+    code: E7462
+    message: Error occurred
+    level: critical
+  - id: 26
+    code: E9035
+    message: Error occurred
+    level: warning
+  - id: 27
+    code: E9381
+    message: Error occurred
+    level: critical
+  - id: 28
+    code: E6915
+    message: Error occurred
+    level: warning
+  - id: 29
+    code: E3423
+    message: Error occurred
+    level: info
+  - id: 30
+    code: E8006
+    message: Error occurred
+    level: warning
+  - id: 31
+    code: E7326
+    message: Error occurred
+    level: warning
+  - id: 32
+    code: E1199
+    message: Error occurred
+    level: warning
+  - id: 33
+    code: E6651
+    message: Error occurred
+    level: warning
+  - id: 34
+    code: E6047
+    message: Error occurred
+    level: warning
+  - id: 35
+    code: E2435
+    message: Error occurred
+    level: critical
+  - id: 36
+    code: E8278
+    message: Error occurred
+    level: info
+  - id: 37
+    code: E7809
+    message: Error occurred
+    level: warning
+  - id: 38
+    code: E5728
+    message: Error occurred
+    level: critical
+  - id: 39
+    code: E7944
+    message: Error occurred
+    level: info
+  - id: 40
+    code: E7786
+    message: Error occurred
+    level: critical
+  - id: 41
+    code: E2410
+    message: Error occurred
+    level: critical
+  - id: 42
+    code: E4404
+    message: Error occurred
+    level: warning
+  - id: 43
+    code: E8776
+    message: Error occurred
+    level: info
+  - id: 44
+    code: E6495
+    message: Error occurred
+    level: critical
+  - id: 45
+    code: E7156
+    message: Error occurred
+    level: critical
+  - id: 46
+    code: E1108
+    message: Error occurred
+    level: warning
+  - id: 47
+    code: E5478
+    message: Error occurred
+    level: warning
+  - id: 48
+    code: E3865
+    message: Error occurred
+    level: info
+  - id: 49
+    code: E8571
+    message: Error occurred
+    level: info

@@ -1,0 +1,51 @@
+user_id,username,email,age,gender,registration_date,last_login,country,city,membership_level
+USER-000000,user0,user0@example.com,78,M,2024-01-01,2024-06-01,China,Beijing,Gold
+USER-000001,user1,user1@example.com,37,F,2024-01-01,2024-06-01,China,New York,Bronze
+USER-000002,user2,user2@example.com,48,F,2024-01-01,2024-06-01,UK,Beijing,Bronze
+USER-000003,user3,user3@example.com,49,F,2024-01-01,2024-06-01,USA,New York,Silver
+USER-000004,user4,user4@example.com,56,M,2024-01-01,2024-06-01,USA,New York,Silver
+USER-000005,user5,user5@example.com,57,F,2024-01-01,2024-06-01,UK,Beijing,Gold
+USER-000006,user6,user6@example.com,36,F,2024-01-01,2024-06-01,China,Beijing,Silver
+USER-000007,user7,user7@example.com,24,M,2024-01-01,2024-06-01,China,Beijing,Gold
+USER-000008,user8,user8@example.com,64,M,2024-01-01,2024-06-01,UK,London,Bronze
+USER-000009,user9,user9@example.com,44,F,2024-01-01,2024-06-01,UK,London,Silver
+USER-000010,user10,user10@example.com,64,M,2024-01-01,2024-06-01,UK,London,Silver
+USER-000011,user11,user11@example.com,60,F,2024-01-01,2024-06-01,UK,New York,Gold
+USER-000012,user12,user12@example.com,77,F,2024-01-01,2024-06-01,USA,New York,Bronze
+USER-000013,user13,user13@example.com,23,F,2024-01-01,2024-06-01,USA,Beijing,Gold
+USER-000014,user14,user14@example.com,41,M,2024-01-01,2024-06-01,China,New York,Gold
+USER-000015,user15,user15@example.com,79,F,2024-01-01,2024-06-01,China,New York,Silver
+USER-000016,user16,user16@example.com,40,F,2024-01-01,2024-06-01,China,New York,Silver
+USER-000017,user17,user17@example.com,56,F,2024-01-01,2024-06-01,UK,New York,Gold
+USER-000018,user18,user18@example.com,50,M,2024-01-01,2024-06-01,USA,Beijing,Silver
+USER-000019,user19,user19@example.com,32,M,2024-01-01,2024-06-01,UK,Beijing,Silver
+USER-000020,user20,user20@example.com,25,F,2024-01-01,2024-06-01,China,New York,Silver
+USER-000021,user21,user21@example.com,72,M,2024-01-01,2024-06-01,China,Beijing,Gold
+USER-000022,user22,user22@example.com,35,M,2024-01-01,2024-06-01,USA,London,Gold
+USER-000023,user23,user23@example.com,66,F,2024-01-01,2024-06-01,UK,London,Bronze
+USER-000024,user24,user24@example.com,29,M,2024-01-01,2024-06-01,China,Beijing,Silver
+USER-000025,user25,user25@example.com,22,M,2024-01-01,2024-06-01,China,Beijing,Bronze
+USER-000026,user26,user26@example.com,23,M,2024-01-01,2024-06-01,UK,London,Silver
+USER-000027,user27,user27@example.com,39,M,2024-01-01,2024-06-01,UK,London,Gold
+USER-000028,user28,user28@example.com,38,M,2024-01-01,2024-06-01,USA,New York,Bronze
+USER-000029,user29,user29@example.com,66,M,2024-01-01,2024-06-01,China,New York,Silver
+USER-000030,user30,user30@example.com,46,F,2024-01-01,2024-06-01,UK,Beijing,Silver
+USER-000031,user31,user31@example.com,44,F,2024-01-01,2024-06-01,USA,Beijing,Bronze
+USER-000032,user32,user32@example.com,40,F,2024-01-01,2024-06-01,USA,London,Gold
+USER-000033,user33,user33@example.com,61,F,2024-01-01,2024-06-01,China,Beijing,Silver
+USER-000034,user34,user34@example.com,20,M,2024-01-01,2024-06-01,UK,Beijing,Bronze
+USER-000035,user35,user35@example.com,18,M,2024-01-01,2024-06-01,UK,New York,Bronze
+USER-000036,user36,user36@example.com,66,F,2024-01-01,2024-06-01,UK,London,Bronze
+USER-000037,user37,user37@example.com,18,F,2024-01-01,2024-06-01,China,London,Bronze
+USER-000038,user38,user38@example.com,26,F,2024-01-01,2024-06-01,China,Beijing,Bronze
+USER-000039,user39,user39@example.com,50,F,2024-01-01,2024-06-01,USA,London,Gold
+USER-000040,user40,user40@example.com,20,F,2024-01-01,2024-06-01,USA,London,Bronze
+USER-000041,user41,user41@example.com,73,F,2024-01-01,2024-06-01,China,London,Gold
+USER-000042,user42,user42@example.com,43,F,2024-01-01,2024-06-01,UK,New York,Silver
+USER-000043,user43,user43@example.com,19,F,2024-01-01,2024-06-01,USA,Beijing,Silver
+USER-000044,user44,user44@example.com,71,F,2024-01-01,2024-06-01,USA,London,Bronze
+USER-000045,user45,user45@example.com,33,F,2024-01-01,2024-06-01,China,London,Gold
+USER-000046,user46,user46@example.com,23,F,2024-01-01,2024-06-01,UK,Beijing,Silver
+USER-000047,user47,user47@example.com,32,F,2024-01-01,2024-06-01,USA,New York,Gold
+USER-000048,user48,user48@example.com,58,M,2024-01-01,2024-06-01,China,Beijing,Bronze
+USER-000049,user49,user49@example.com,75,F,2024-01-01,2024-06-01,UK,Beijing,Gold
