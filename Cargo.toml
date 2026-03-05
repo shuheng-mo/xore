@@ -70,7 +70,10 @@ serde_json = "1.0"
 toml = "0.8"
 
 # 日期时间
-chrono = "0.4.38"
+chrono = { version = "0.4.38", features = ["serde"] }
+
+# 路径工具
+dirs = "5.0"
 
 # 测试工具
 tempfile = "3.8"

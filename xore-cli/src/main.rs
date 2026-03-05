@@ -98,6 +98,18 @@ enum Commands {
         /// 启用文件监控模式（增量索引）
         #[arg(long, short = 'w')]
         watch: bool,
+
+        /// 显示搜索历史
+        #[arg(long)]
+        history: bool,
+
+        /// 显示智能推荐
+        #[arg(long)]
+        recommend: bool,
+
+        /// 清除搜索历史
+        #[arg(long)]
+        clear_history: bool,
     },
 
     /// 处理数据
@@ -173,6 +185,9 @@ fn main() -> anyhow::Result<()> {
             rebuild,
             index_dir,
             watch,
+            history,
+            recommend,
+            clear_history,
         } => {
             find::execute(find::FindArgs {
                 query,
@@ -190,6 +205,9 @@ fn main() -> anyhow::Result<()> {
                 rebuild,
                 index_dir,
                 watch,
+                history,
+                recommend,
+                clear_history,
             })?;
         }
         Commands::Process { file, query, quality_check, output, format } => {

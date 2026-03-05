@@ -12,6 +12,7 @@ pub struct Config {
     pub limits: LimitsConfig,
     pub ui: UiConfig,
     pub exclude: ExcludeConfig,
+    pub history: HistoryConfig,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -68,6 +69,21 @@ pub struct ExcludeConfig {
     pub patterns: Vec<String>,
 }
 
+/// 历史记录配置
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HistoryConfig {
+    /// 历史记录存储路径
+    pub history_path: PathBuf,
+    /// 最大历史记录数
+    pub max_entries: usize,
+    /// 历史记录保留天数
+    pub retention_days: u32,
+    /// 是否启用智能推荐
+    pub enable_recommendations: bool,
+    /// 最大推荐数量
+    pub max_recommendations: usize,
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -101,6 +117,13 @@ impl Default for Config {
                     "target".to_string(),
                     "*.lock".to_string(),
                 ],
+            },
+            history: HistoryConfig {
+                history_path: PathBuf::from("~/.xore/history"),
+                max_entries: 1000,
+                retention_days: 30,
+                enable_recommendations: true,
+                max_recommendations: 5,
             },
         }
     }

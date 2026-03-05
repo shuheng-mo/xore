@@ -39,6 +39,7 @@ cargo install xore
 | 文件搜索 | `xore find` | 高性能文件扫描与内容搜索 |
 | 全文索引 | `xore find --index` | 基于 Tantivy 的中英文全文搜索 |
 | 增量监控 | `xore find --index --watch` | 实时文件监控与增量索引更新 |
+| 搜索历史 | `xore find --history` | 自动记录搜索历史，智能推荐 |
 | 数据处理 | `xore process` | CSV/JSON/Parquet 数据预览与质量检查 |
 | **SQL 查询** | `xore process <file> "<sql>"` | **基于 Polars SQL 引擎的完整 SQL 支持** ✅ |
 | Polars 引擎 | `xore process` | 零拷贝读取、LazyFrame 惰性求值 |

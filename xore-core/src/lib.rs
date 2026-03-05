@@ -4,9 +4,17 @@
 
 pub mod config;
 pub mod error;
+pub mod history;
 pub mod logging;
+pub mod recommendation;
 pub mod types;
 
 pub use config::Config;
 pub use error::{Result, XoreError};
+pub use history::{
+    get_default_history_path, HistoryStore, SearchHistoryEntry, SearchStats, SearchType,
+};
 pub use logging::{LogConfig, LogLevel};
+pub use recommendation::{
+    format_time_ago, Recommendation, RecommendationEngine, RecommendationType,
+};

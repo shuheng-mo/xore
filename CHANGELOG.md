@@ -9,6 +9,26 @@
 
 ### Added
 
+- **Day 25: 智能推荐系统** ([#day25](plans/day25-smart-recommendations-plan.md))
+  - **搜索历史模块** (`xore-core/src/history.rs`)：
+    - 实现 `SearchType` 枚举：FullText, Semantic, FileType, SemanticWithFilter
+    - 实现 `SearchHistoryEntry` 结构：记录查询、搜索类型、路径、时间戳、结果数、执行时间
+    - 实现 `HistoryStore` 存储引擎：JSON 文件持久化，自动加载历史数据
+    - 支持搜索统计：查询频率、平均结果数、平均执行时间
+    - 自动创建 `~/.xore/history/` 目录
+  - **推荐引擎模块** (`xore-core/src/recommendation.rs`)：
+    - 实现 `RecommendationEngine` 智能推荐引擎
+    - 基于搜索频率的推荐生成
+    - 支持多种推荐类型：频繁查询、路径模式、文件类型模式
+    - 置信度评分系统
+  - **CLI 集成**：
+    - `xore f "query"` 自动记录搜索历史
+    - `xore f --history` 显示搜索历史
+    - `xore f --recommend` 显示智能推荐
+    - `xore f --clear-history` 清除搜索历史
+  - **数据存储**：JSON 文件存储在 `~/.xore/history/history.json`
+  - **测试覆盖**：16 个单元测试通过
+
 - **Day 24: 语义搜索 CLI 集成** ([#day24](plans/day24-semantic-search-plan.md))
   - **CLI 集成**：
     - 实现 `xore f --semantic` 语义搜索命令（`xore-cli/src/commands/find.rs`）

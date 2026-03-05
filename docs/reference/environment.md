@@ -8,6 +8,7 @@ XORE 支持通过环境变量配置运行时行为。
 |------|------|--------|------|
 | `XORE_CONFIG_PATH` | 配置文件路径 | `~/.config/xore/config.toml` | `/etc/xore/config.toml` |
 | `XORE_INDEX_PATH` | 索引存储路径 | `~/.xore/index` | `/var/xore/index` |
+| `XORE_HISTORY_PATH` | 搜索历史存储路径 | `~/.xore/history` | `/var/xore/history` |
 | `XORE_LOG_LEVEL` | 日志级别 | `info` | `debug`, `trace` |
 | `XORE_NUM_THREADS` | 工作线程数 | CPU 核心数 | `8` |
 | `NO_COLOR` | 禁用彩色输出 | 未设置 | `1` |
@@ -37,6 +38,18 @@ XORE_CONFIG_PATH=./dev.toml xore find
 export XORE_INDEX_PATH=/data/xore/index
 xore find
 ```
+
+### XORE_HISTORY_PATH
+
+指定搜索历史记录的存储位置。
+
+```bash
+# 将历史记录存储到指定目录
+export XORE_HISTORY_PATH=/data/xore/history
+xore find "error"
+```
+
+> **注意：** 历史记录以 JSON 格式存储在 `history.json` 文件中。
 
 ### XORE_LOG_LEVEL
 

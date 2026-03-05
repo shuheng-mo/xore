@@ -115,6 +115,13 @@ fn test_config_deserialization() {
 
         [exclude]
         patterns = ["*.log", "*.tmp"]
+
+        [history]
+        history_path = "/tmp/xore_history"
+        max_entries = 500
+        retention_days = 14
+        enable_recommendations = true
+        max_recommendations = 3
     "#;
 
     let config: Config = toml::from_str(toml_str).unwrap();

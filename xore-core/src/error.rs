@@ -23,6 +23,9 @@ pub enum XoreError {
     #[error("配置错误: {0}")]
     ConfigError(String),
 
+    #[error("历史记录错误: {0}")]
+    HistoryError(String),
+
     #[error("超出资源限制: {resource} (当前: {current}, 最大: {max})")]
     ResourceLimit { resource: String, current: usize, max: usize },
 

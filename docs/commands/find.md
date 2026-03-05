@@ -47,6 +47,9 @@ xore f [OPTIONS] [QUERY]
 | `--index-dir` | - | String | `.xore/index` | 指定索引目录路径 |
 | `--watch` | `-w` | bool | false | 启用文件监控与增量索引 |
 | `--semantic` | - | bool | false | 启用语义搜索（基于 ONNX）|
+| `--history` | - | bool | false | 显示搜索历史记录 |
+| `--recommend` | - | bool | false | 显示智能推荐 |
+| `--clear-history` | - | bool | false | 清除搜索历史记录 |
 
 ## 过滤器语法
 
@@ -170,6 +173,24 @@ xore find --hidden --type text
 # 超过 30 天未修改的小型文件
 xore find --size lt:1MB --mtime +30d
 ```
+
+### 搜索历史与智能推荐
+
+```bash
+# 执行搜索时会自动记录搜索历史
+xore find "error" --path ./src
+
+# 显示搜索历史
+xore find --history
+
+# 显示智能推荐（基于搜索频率）
+xore find --recommend
+
+# 清除搜索历史
+xore find --clear-history
+```
+
+> **注意：** 搜索历史存储在 `~/.xore/history/history.json`
 
 ### 全文索引搜索
 

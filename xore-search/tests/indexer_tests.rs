@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
 use tempfile::TempDir;
-use xore_search::indexer::{IndexBuilder, IndexConfig, IndexSchema, index_exists, open_index};
+use xore_search::indexer::{index_exists, open_index, IndexBuilder, IndexConfig, IndexSchema};
 use xore_search::scanner::ScannedFile;
 use xore_search::tokenizer::XoreTokenizer;
 
@@ -325,7 +325,9 @@ mod index_builder_tests {
         // 第一次索引
         {
             let mut builder = IndexBuilder::new(&index_path).unwrap();
-            builder.add_document(&scanned_file(test_file_path.clone(), "Original content")).unwrap();
+            builder
+                .add_document(&scanned_file(test_file_path.clone(), "Original content"))
+                .unwrap();
             builder.build().unwrap();
         }
 

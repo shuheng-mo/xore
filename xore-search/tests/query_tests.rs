@@ -307,10 +307,8 @@ mod filter_search_tests {
         let results = searcher.search_with_filter("error", None, 100).unwrap();
 
         // 应该找到多种类型的文件
-        let extensions: std::collections::HashSet<_> = results
-            .iter()
-            .filter_map(|r| r.path.extension().and_then(|e| e.to_str()))
-            .collect();
+        let extensions: std::collections::HashSet<_> =
+            results.iter().filter_map(|r| r.path.extension().and_then(|e| e.to_str())).collect();
 
         assert!(!extensions.is_empty());
     }
@@ -436,10 +434,7 @@ mod snippet_tests {
         let temp_dir = TempDir::new().unwrap();
         let index_path = setup_test_index(&temp_dir);
 
-        let config = SearchConfig {
-            enable_highlight: false,
-            ..Default::default()
-        };
+        let config = SearchConfig { enable_highlight: false, ..Default::default() };
 
         let searcher = Searcher::with_config(&index_path, config).unwrap();
         let results = searcher.search("error").unwrap();

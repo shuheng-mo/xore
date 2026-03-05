@@ -89,6 +89,10 @@ patterns = [
 | `max_index_size_gb` | usize | `10` | 最大索引大小（GB）|
 | `max_file_size_mb` | usize | `100` | 单文件最大大小（MB），超过不索引 |
 | `writer_buffer_mb` | usize | `50` | 索引 Writer 缓冲区大小（MB）|
+| `history_enabled` | bool | `true` | 是否启用搜索历史记录 |
+| `history_path` | String | `~/.xore/history` | 搜索历史存储路径 |
+| `history_max_entries` | usize | `1000` | 最大历史记录条数 |
+| `history_retention_days` | u32 | `90` | 历史记录保留天数 |
 
 ### [process] 数据处理配置
 

@@ -30,5 +30,8 @@ walkdir.workspace = true
 # 日期时间
 chrono.workspace = true
 
+# 路径工具
+dirs.workspace = true
+
 [dev-dependencies]
 tempfile.workspace = true

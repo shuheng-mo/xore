@@ -13,6 +13,9 @@ use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use tracing::{debug, info, warn};
 use xore_ai::{Document, EmbeddingModel, VectorSearcher};
+use xore_core::{
+    format_time_ago, get_default_history_path, RecommendationEngine, SearchHistoryEntry, SearchType,
+};
 use xore_search::{
     index_exists, FileScanner, FileTypeFilter, IncrementalConfig, IncrementalIndexer, IndexBuilder,
     IndexConfig, MtimeFilter, ScanConfig, Searcher, SizeFilter, WatcherConfig,
@@ -35,6 +38,9 @@ pub struct FindArgs {
     pub rebuild: bool,
     pub index_dir: Option<String>,
     pub watch: bool,
+    pub history: bool,
+    pub recommend: bool,
+    pub clear_history: bool,
 }
 
 /// 格式化文件大小为人类可读格式
@@ -76,6 +82,19 @@ pub fn execute(args: FindArgs) -> Result<()> {
     // 如果启用了watch模式，必须同时启用index模式
     if args.watch && !args.index {
         anyhow::bail!("--watch mode requires --index to be enabled");
+    }
+
+    // 处理历史记录相关命令
+    if args.history {
+        return show_search_history();
+    }
+
+    if args.recommend {
+        return show_recommendations();
+    }
+
+    if args.clear_history {
+        return clear_history();
     }
 
     // 如果启用了索引搜索模式
@@ -210,6 +229,30 @@ pub fn execute(args: FindArgs) -> Result<()> {
         println!("  {} {} 个文件访问错误", "⚠".yellow(), stats.errors.to_string().yellow());
     }
 
+    // 记录搜索历史
+    if let Some(ref query) = args.query {
+        eprintln!("DEBUG: Recording search for query: {}", query);
+        let search_type = if args.semantic { SearchType::Semantic } else { SearchType::FullText };
+
+        match record_search_history(
+            query,
+            search_type,
+            &args.path,
+            sorted_files.len(),
+            stats.elapsed_ms as u64,
+            args.file_type.clone(),
+        ) {
+            Ok(_) => {
+                println!("  {} 已记录搜索历史", "✓".dimmed());
+            }
+            Err(e) => {
+                eprintln!("DEBUG: Failed to record search history: {}", e);
+            }
+        }
+    } else {
+        eprintln!("DEBUG: No query to record");
+    }
+
     Ok(())
 }
 
@@ -299,6 +342,23 @@ fn execute_index_search(args: &FindArgs) -> Result<()> {
         searcher.num_docs().to_string().cyan(),
         search_elapsed
     );
+
+    // 记录搜索历史
+    let search_type =
+        if args.file_type.is_some() { SearchType::FileType } else { SearchType::FullText };
+
+    if let Err(e) = record_search_history(
+        query,
+        search_type,
+        &args.path,
+        results.len(),
+        search_elapsed.as_millis() as u64,
+        args.file_type.clone(),
+    ) {
+        debug!("Failed to record search history: {}", e);
+    } else {
+        println!("  {} 已记录搜索历史", "✓".dimmed());
+    }
 
     Ok(())
 }
@@ -699,4 +759,114 @@ mod atty {
             true
         }
     }
+}
+
+/// 显示搜索历史
+fn show_search_history() -> Result<()> {
+    println!("{}", "📜 搜索历史".cyan());
+    println!();
+
+    let history_path = get_default_history_path();
+    let engine = RecommendationEngine::new(Some(history_path))?;
+
+    let recent = engine.get_recent_searches(10);
+
+    if recent.is_empty() {
+        println!("{}", "暂无搜索历史".yellow());
+        return Ok(());
+    }
+
+    for (i, entry) in recent.iter().enumerate() {
+        let time_ago = format_time_ago(&entry.timestamp);
+        let type_str = entry.search_type.to_string();
+
+        println!(
+            "  {}. \"{}\" ({}) - {} - {} 结果 - {}",
+            i + 1,
+            entry.query.cyan(),
+            type_str.dimmed(),
+            entry.path.dimmed(),
+            entry.result_count.to_string().green(),
+            time_ago.dimmed()
+        );
+    }
+
+    println!();
+    println!("  总计: {} 条记录", engine.history_len().to_string().cyan());
+
+    Ok(())
+}
+
+/// 显示智能推荐
+fn show_recommendations() -> Result<()> {
+    println!("{}", "💡 智能推荐".cyan());
+    println!();
+
+    let history_path = get_default_history_path();
+    let engine = RecommendationEngine::new(Some(history_path))?;
+
+    if engine.history_len() == 0 {
+        println!("{}", "暂无足够的历史数据生成推荐".yellow());
+        println!("{}", "请先进行一些搜索操作".dimmed());
+        return Ok(());
+    }
+
+    // 生成推荐（使用空查询来获取通用推荐）
+    let recommendations = engine.generate_recommendations("");
+
+    if recommendations.is_empty() {
+        println!("{}", "暂无推荐".yellow());
+        return Ok(());
+    }
+
+    for (i, rec) in recommendations.iter().enumerate() {
+        println!("  {}. {}", i + 1, rec.message.cyan());
+        println!("     💡 {}", rec.suggestion.yellow());
+        println!();
+    }
+
+    Ok(())
+}
+
+/// 清除搜索历史
+fn clear_history() -> Result<()> {
+    println!("{}", "🗑️ 清除搜索历史".cyan());
+    println!();
+
+    let history_path = get_default_history_path();
+    let engine = RecommendationEngine::new(Some(history_path))?;
+
+    let count = engine.clear_history()?;
+
+    println!("{} 已清除 {} 条搜索记录", "✓".green(), count.to_string().green().bold());
+
+    Ok(())
+}
+
+/// 记录搜索历史
+fn record_search_history(
+    query: &str,
+    search_type: SearchType,
+    path: &str,
+    result_count: usize,
+    execution_time_ms: u64,
+    file_type: Option<String>,
+) -> Result<()> {
+    let history_path = get_default_history_path();
+    info!("Creating recommendation engine at: {:?}", history_path);
+    let engine = RecommendationEngine::new(Some(history_path))?;
+
+    let entry = SearchHistoryEntry::new(
+        query.to_string(),
+        search_type,
+        path.to_string(),
+        result_count,
+        execution_time_ms,
+        file_type,
+    );
+
+    info!("Calling record_search with entry: {:?}", entry);
+    engine.record_search(entry)?;
+    info!("Search history recorded successfully");
+    Ok(())
 }
