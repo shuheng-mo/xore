@@ -1,109 +1,111 @@
 name: Release
 
+permissions:
+  contents: write # 创建 GitHub Release
+  id-token: write # 用于 Homebrew tap 推送
+
 on:
   push:
     tags:
-      - "v*"
-
-env:
-  CARGO_TERM_COLOR: always
+      - "v[0-9]+.[0-9]+.[0-9]+*" # 触发：git tag v1.0.0 && git push --tags
 
 jobs:
-  build-release:
-    name: 构建Release二进制
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-            artifact_name: xore
-            asset_name: xore-linux-x64
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            artifact_name: xore
-            asset_name: xore-macos-x64
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            artifact_name: xore
-            asset_name: xore-macos-arm64
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            artifact_name: xore.exe
-            asset_name: xore-windows-x64.exe
-
+  # ── 第一阶段：规划本次 Release 要构建哪些目标 ──────────────────────────
+  plan:
+    name: 规划构建目标
+    runs-on: ubuntu-latest
+    outputs:
+      val: ${{ steps.plan.outputs.manifest }}
+      tag: ${{ !startsWith(github.ref, 'refs/tags/') }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: 安装 cargo-dist
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.22.1/cargo-dist-installer.sh | sh
+      - name: 规划 Release
+        id: plan
+        run: cargo dist plan --tag=${{ github.ref_name }} --output-format=json > dist-manifest.json
+      - name: 上传规划结果
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-plan-dist-manifest
+          path: dist-manifest.json
 
-      - name: 安装Rust工具链
+  # ── 第二阶段：跨平台并行构建 ───────────────────────────────────────────
+  build:
+    name: 构建 ${{ matrix.target }}
+    needs: plan
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS Apple Silicon
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            dist_args: --artifacts=local --target=aarch64-apple-darwin
+          # macOS Intel
+          - os: macos-13
+            target: x86_64-apple-darwin
+            dist_args: --artifacts=local --target=x86_64-apple-darwin
+          # Linux x86_64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            dist_args: --artifacts=local --target=x86_64-unknown-linux-gnu
+          # Windows x86_64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            dist_args: --artifacts=local --target=x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-
-      - name: 安装musl工具链（仅Linux）
-        if: matrix.target == 'x86_64-unknown-linux-musl'
-        run: sudo apt-get install -y musl-tools
-
-      - name: 构建Release
-        run: cargo build --release --target ${{ matrix.target }}
-
-      - name: 打包二进制（Unix）
-        if: matrix.os != 'windows-latest'
-        run: |
-          cd target/${{ matrix.target }}/release
-          tar czf ${{ matrix.asset_name }}.tar.gz ${{ matrix.artifact_name }}
-
-      - name: 打包二进制（Windows）
-        if: matrix.os == 'windows-latest'
-        run: |
-          cd target/${{ matrix.target }}/release
-          Compress-Archive -Path ${{ matrix.artifact_name }} -DestinationPath ${{ matrix.asset_name }}.zip
-
-      - name: 上传构建产物（Unix）
-        if: matrix.os != 'windows-latest'
+      - name: 缓存 Cargo 依赖
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: 安装 cargo-dist
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.22.1/cargo-dist-installer.sh | sh
+        shell: bash
+      - name: 构建 Release 产物
+        run: cargo dist build ${{ matrix.dist_args }} --output-format=json
+      - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.asset_name }}
-          path: target/${{ matrix.target }}/release/${{ matrix.asset_name }}.tar.gz
+          name: artifacts-${{ matrix.target }}
+          path: dist/
 
-      - name: 上传构建产物（Windows）
-        if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.asset_name }}
-          path: target/${{ matrix.target }}/release/${{ matrix.asset_name }}.zip
-
-  create-release:
-    name: 创建GitHub Release
-    needs: build-release
+  # ── 第三阶段：发布 GitHub Release + 推送 Homebrew Formula ─────────────
+  publish:
+    name: 发布 Release
+    needs: [plan, build]
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
-
       - name: 下载所有构建产物
         uses: actions/download-artifact@v4
         with:
-          path: artifacts/
-
-      - name: 创建Release并上传资产
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/**/*
-          generate_release_notes: true
+          pattern: artifacts-*
+          path: dist/
+          merge-multiple: true
+      - name: 安装 cargo-dist
+        run: curl --proto '=https' --tlsv1.2 -LsSf https://github.com/axodotdev/cargo-dist/releases/download/v0.22.1/cargo-dist-installer.sh | sh
+      - name: 发布到 GitHub Releases
+        run: cargo dist publish --tag=${{ github.ref_name }} --from-artifacts=dist/
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish-crate:
-    name: 发布到crates.io
-    needs: create-release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: 安装Rust工具链
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: 发布到crates.io
-        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          # 推送 Homebrew tap 需要一个有 repo 写权限的 PAT
+          # 在 Settings > Secrets 中添加：HOMEBREW_TAP_TOKEN
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

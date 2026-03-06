@@ -15,13 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: 安装Rust工具链
+      - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
-
-      - name: 缓存Cargo依赖
+      - name: 缓存 Cargo 依赖
         uses: actions/cache@v4
         with:
           path: |
@@ -31,11 +29,9 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
       - name: 格式检查
         run: cargo fmt -- --check
-
-      - name: Clippy检查
+      - name: Clippy 检查
         run: cargo clippy --all-targets --all-features -- -D warnings
 
   test:
@@ -46,11 +42,9 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
-
-      - name: 安装Rust工具链
+      - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
-
-      - name: 缓存Cargo依赖
+      - name: 缓存 Cargo 依赖
         uses: actions/cache@v4
         with:
           path: |
@@ -60,10 +54,8 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-stable-cargo-${{ hashFiles('**/Cargo.lock') }}
-
       - name: 运行测试
         run: cargo test --all --verbose
-
       - name: 运行文档测试
         run: cargo test --doc --verbose
 
@@ -72,44 +64,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: 安装Rust工具链
+      - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
-
-      - name: 安装Tarpaulin
+      - name: 安装 Tarpaulin
         run: cargo install cargo-tarpaulin
-
       - name: 生成覆盖率报告
         run: |
-          # 排除 polars-arrow 依赖问题（外部依赖导致的编译错误）
-          cargo tarpaulin --out Xml \
-            --exclude polars-arrow \
+          cargo tarpaulin --out Xml --all-features \
             --exclude-files '.*/target/.*' \
             --packages xore-cli xore-config xore-core xore-search xore-process xore-ai
-
-      - name: 上传到Codecov
+      - name: 上传到 Codecov
         uses: codecov/codecov-action@v4
         with:
           files: ./cobertura.xml
           fail_ci_if_error: false
 
-  build:
-    name: 构建
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+  # CI 阶段只做编译验证，真正的跨平台 Release 构建由 release.yml 负责
+  build-check:
+    name: 编译验证
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: 安装Rust工具链
+      - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
-
-      - name: 构建Release
+      - name: 验证 Release 编译
         run: cargo build --release --verbose
-
-      - name: 上传构建产物
-        uses: actions/upload-artifact@v4
-        with:
-          name: xore-${{ matrix.os }}
-          path: "target/release/xore${{ matrix.os == 'windows-latest' && '.exe' || '' }}"
