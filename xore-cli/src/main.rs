@@ -10,13 +10,13 @@ use xore_core::{print_anyhow_error, LogConfig};
 mod commands;
 mod ui;
 
-use commands::{agent, benchmark, find, process};
+use commands::{agent, benchmark, config, find, process};
 
 /// XORE - 搜索和数据处理一体化工具
 #[derive(Parser)]
 #[command(name = "xore")]
 #[command(author = "XORE Team")]
-#[command(version = "1.0.0")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(about = "Explore the Abyss, Extract the Core", long_about = None)]
 struct Cli {
     /// 详细输出模式
@@ -164,6 +164,38 @@ enum Commands {
         #[arg(long, default_value = "1")]
         warmup: usize,
     },
+
+    /// 管理全局配置
+    Config {
+        #[command(subcommand)]
+        subcommand: ConfigCommands,
+    },
+}
+
+#[derive(Subcommand)]
+enum ConfigCommands {
+    /// 显示当前配置
+    Show,
+
+    /// 获取配置项的值
+    Get {
+        /// 配置项名称（例如：paths.index, search.max_file_size_mb）
+        key: String,
+    },
+
+    /// 设置配置项的值
+    Set {
+        /// 配置项名称
+        key: String,
+        /// 配置项新值
+        value: String,
+    },
+
+    /// 重置配置为默认值
+    Reset,
+
+    /// 编辑配置文件
+    Edit,
 }
 
 #[derive(Subcommand)]
@@ -339,6 +371,29 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
                 data_path: data_path.clone(),
                 warmup: *warmup,
             })?;
+        }
+        Commands::Config { subcommand } => {
+            let config_args = match subcommand {
+                ConfigCommands::Show => {
+                    config::ConfigArgs { subcommand: config::ConfigSubcommand::Show }
+                }
+                ConfigCommands::Get { key } => config::ConfigArgs {
+                    subcommand: config::ConfigSubcommand::Get { key: key.clone() },
+                },
+                ConfigCommands::Set { key, value } => config::ConfigArgs {
+                    subcommand: config::ConfigSubcommand::Set {
+                        key: key.clone(),
+                        value: value.clone(),
+                    },
+                },
+                ConfigCommands::Reset => {
+                    config::ConfigArgs { subcommand: config::ConfigSubcommand::Reset }
+                }
+                ConfigCommands::Edit => {
+                    config::ConfigArgs { subcommand: config::ConfigSubcommand::Edit }
+                }
+            };
+            config::execute(config_args)?;
         }
     }
     Ok(())

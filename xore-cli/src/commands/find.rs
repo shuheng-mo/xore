@@ -62,18 +62,36 @@ fn format_size(bytes: u64) -> String {
 }
 
 /// 获取索引目录路径
+///
+/// 优先级：
+/// 1. 用户通过 --index-dir 指定的路径
+/// 2. 项目级索引（搜索目录下的 .xore/index）
+/// 3. 全局索引 (~/.xore/index)
 fn get_index_path(args: &FindArgs) -> PathBuf {
+    // 1. 如果用户明确指定了索引目录，使用用户指定的路径
     if let Some(ref dir) = args.index_dir {
-        PathBuf::from(dir)
-    } else {
-        // 默认使用项目级索引
-        let search_path = Path::new(&args.path);
-        if search_path.is_absolute() {
-            search_path.join(".xore/index")
-        } else {
-            PathBuf::from(".xore/index")
-        }
+        return PathBuf::from(dir);
     }
+
+    // 2. 检查是否存在项目级索引（搜索目录下的 .xore/index）
+    let search_path = Path::new(&args.path);
+    let project_index_path = if search_path.is_absolute() {
+        search_path.join(".xore/index")
+    } else {
+        PathBuf::from(".xore/index")
+    };
+
+    if project_index_path.exists() || args.rebuild {
+        return project_index_path;
+    }
+
+    // 3. 默认使用全局索引 (~/.xore/index)
+    if let Ok(xore_paths) = XorePaths::new() {
+        return xore_paths.index_dir();
+    }
+
+    // 备用方案：使用项目级索引
+    project_index_path
 }
 
 /// 执行查找命令

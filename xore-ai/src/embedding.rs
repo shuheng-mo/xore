@@ -129,7 +129,8 @@ impl EmbeddingModel {
         // 5. 提取输出 (last_hidden_state)
         // MiniLM 模型输出: [batch_size, seq_len, hidden_size]
         let output_tensor = &outputs[0];
-        let output_array = output_tensor.try_extract_tensor::<f32>()
+        let output_array = output_tensor
+            .try_extract_tensor::<f32>()
             .map_err(|e| anyhow::anyhow!("提取输出张量失败: {:?}", e))?;
 
         // 6. 平均池化 (取所有 token 的平均值)

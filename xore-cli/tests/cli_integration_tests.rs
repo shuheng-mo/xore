@@ -12,7 +12,7 @@ fn cargo_bin() -> Command {
 #[test]
 fn test_cli_help() {
     let output = cargo_bin()
-        .args(["run", "--package", "xore-cli", "--", "--help"])
+        .args(["run", "--package", "xore", "--", "--help"])
         .output()
         .expect("Failed to execute command");
 
@@ -28,20 +28,20 @@ fn test_cli_help() {
 #[test]
 fn test_cli_version() {
     let output = cargo_bin()
-        .args(["run", "--package", "xore-cli", "--", "--version"])
+        .args(["run", "--package", "xore", "--", "--version"])
         .output()
         .expect("Failed to execute command");
 
     assert!(output.status.success(), "xore --version should succeed");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("1.0.0"), "Version should be 1.0.0");
+    assert!(stdout.contains("1.0.2"), "Version should be 1.0.2");
 }
 
 #[test]
 fn test_cli_find_help() {
     let output = cargo_bin()
-        .args(["run", "--package", "xore-cli", "--", "find", "--help"])
+        .args(["run", "--package", "xore", "--", "find", "--help"])
         .output()
         .expect("Failed to execute command");
 
@@ -57,7 +57,7 @@ fn test_cli_find_help() {
 #[test]
 fn test_cli_process_help() {
     let output = cargo_bin()
-        .args(["run", "--package", "xore-cli", "--", "process", "--help"])
+        .args(["run", "--package", "xore", "--", "process", "--help"])
         .output()
         .expect("Failed to execute command");
 
@@ -70,7 +70,7 @@ fn test_cli_process_help() {
 #[test]
 fn test_cli_benchmark_help() {
     let output = cargo_bin()
-        .args(["run", "--package", "xore-cli", "--", "benchmark", "--help"])
+        .args(["run", "--package", "xore", "--", "benchmark", "--help"])
         .output()
         .expect("Failed to execute command");
 
@@ -85,7 +85,7 @@ fn test_cli_benchmark_help() {
 #[test]
 fn test_cli_find_basic() {
     let output = cargo_bin()
-        .args(["run", "--package", "xore-cli", "--", "find", "--path", ".", "--max-depth", "1"])
+        .args(["run", "--package", "xore", "--", "find", "--path", ".", "--max-depth", "1"])
         .output()
         .expect("Failed to execute command");
 
@@ -99,7 +99,7 @@ fn test_cli_find_with_type_filter() {
         .args([
             "run",
             "--package",
-            "xore-cli",
+            "xore",
             "--",
             "find",
             "--path",
@@ -121,7 +121,7 @@ fn test_cli_benchmark_scan() {
         .args([
             "run",
             "--package",
-            "xore-cli",
+            "xore",
             "--",
             "benchmark",
             "--suite",
@@ -140,7 +140,7 @@ fn test_cli_benchmark_scan() {
 #[test]
 fn test_cli_benchmark_alloc() {
     let output = cargo_bin()
-        .args(["run", "--package", "xore-cli", "--", "benchmark", "--suite", "alloc", "-n", "1"])
+        .args(["run", "--package", "xore", "--", "benchmark", "--suite", "alloc", "-n", "1"])
         .output()
         .expect("Failed to execute command");
 
@@ -159,7 +159,7 @@ fn test_cli_verbose_mode() {
         .args([
             "run",
             "--package",
-            "xore-cli",
+            "xore",
             "--",
             "--verbose",
             "find",
@@ -180,7 +180,7 @@ fn test_cli_quiet_mode() {
         .args([
             "run",
             "--package",
-            "xore-cli",
+            "xore",
             "--",
             "--quiet",
             "find",
@@ -198,7 +198,7 @@ fn test_cli_quiet_mode() {
 #[test]
 fn test_cli_alias_f() {
     let output = cargo_bin()
-        .args(["run", "--package", "xore-cli", "--", "f", "--path", ".", "--max-depth", "1"])
+        .args(["run", "--package", "xore", "--", "f", "--path", ".", "--max-depth", "1"])
         .output()
         .expect("Failed to execute command");
 
@@ -211,7 +211,7 @@ fn test_cli_alias_bench() {
         .args([
             "run",
             "--package",
-            "xore-cli",
+            "xore",
             "--",
             "bench",
             "--suite",

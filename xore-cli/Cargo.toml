@@ -19,11 +19,11 @@ mimalloc = ["dep:mimalloc"]
 # 性能优化 - 可选分配器
 mimalloc = { workspace = true, optional = true }
 # 内部依赖
-xore-config = { path = "../xore-config", version = "1.0.2" }
-xore-core = { path = "../xore-core", version = "1.0.2" }
-xore-search = { path = "../xore-search", version = "1.0.2" }
-xore-process = { path = "../xore-process", version = "1.0.2" }
-xore-ai = { path = "../xore-ai", version = "1.0.2" }
+xore-config = { path = "../xore-config", version = "1.0.3" }
+xore-core = { path = "../xore-core", version = "1.0.3" }
+xore-search = { path = "../xore-search", version = "1.0.3" }
+xore-process = { path = "../xore-process", version = "1.0.3" }
+xore-ai = { path = "../xore-ai", version = "1.0.3" }
 
 # 数据处理
 polars = { workspace = true }
@@ -44,6 +44,7 @@ tracing-subscriber.workspace = true
 # 序列化
 serde.workspace = true
 serde_json.workspace = true
+toml.workspace = true
 
 # 并发
 tokio.workspace = true

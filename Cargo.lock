@@ -4633,7 +4633,7 @@ checksum = "f17a85883d4e6d00e8a97c586de764dabcc06133f7f1d55dce5cdc070ad7fe59"
 
 [[package]]
 name = "xore"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "anyhow",
  "clap",
@@ -4648,6 +4648,7 @@ dependencies = [
  "tempfile",
  "thiserror 1.0.69",
  "tokio",
+ "toml",
  "tracing",
  "tracing-subscriber",
  "xore-ai",
@@ -4659,7 +4660,7 @@ dependencies = [
 
 [[package]]
 name = "xore-ai"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "anyhow",
  "ndarray 0.15.6",
@@ -4675,7 +4676,7 @@ dependencies = [
 
 [[package]]
 name = "xore-config"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "anyhow",
  "dirs",
@@ -4688,7 +4689,7 @@ dependencies = [
 
 [[package]]
 name = "xore-core"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4707,7 +4708,7 @@ dependencies = [
 
 [[package]]
 name = "xore-process"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "anyhow",
  "criterion",
@@ -4727,7 +4728,7 @@ dependencies = [
 
 [[package]]
 name = "xore-search"
-version = "1.0.2"
+version = "1.0.3"
 dependencies = [
  "anyhow",
  "chrono",

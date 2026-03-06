@@ -9,13 +9,13 @@
 
 ### Added
 
-- **Day 26: 错误处理优化 (修复)** ([#day26-error](plans/day26-error-handling-plan.md))
+- **错误处理优化 (修复)**
   - **Bug 修复**：修复 `--verbose` 标志在子命令上不工作的问题
     - 原因：`verbose` 参数未设置为全局标志 (`global = true`)
     - 修复：在 `xore-cli/src/main.rs` 中添加 `global = true` 属性
     - 现在支持：`xore find --verbose "query"` 和 `xore --verbose find "query"` 两种用法
 
-- **Day 26: 错误处理优化** ([#day26-error](plans/day26-error-handling-plan.md))
+- **错误处理优化**
   - **扩展 `XoreError` 枚举** (`xore-core/src/error/mod.rs`)：
     - 新增错误类型：`SearchError`, `ParseError`, `ValidationError`, `Timeout`, `PermissionDenied`
     - 新增 `error_code()` 方法，返回机器可读的错误代码字符串
@@ -41,7 +41,7 @@
     - `xore-search/src/query.rs`：查询解析/执行失败附带语法提示
   - **测试覆盖**：43 个错误处理测试全部通过（新增 28 个）
 
-- **Day 27: 文档与示例完善**
+- **文档与示例完善**
   - README 文档完善：添加项目定位和性能数据
   - 命令文档完善：`docs/commands/` 下所有命令文档更新
   - 新增 `docs/commands/agent.md`: Agent 命令文档
@@ -50,7 +50,7 @@
   - Roo Code Skills 文档：`.roo/skills/*/SKILL.md` 完善
   - **MVP 开发完成总结**：27/28 天任务完成
 
-- **Day 26: Agent-Native 接口与 Roo Code Skills 集成** ([#day26](plans/agent-module-plan.md))
+- **Agent-Native 接口与 Roo Code Skills 集成**
   - **Agent 命令模块** (`xore-cli/src/commands/agent.rs`)：
     - 实现 `xore agent` 命令，提供 5 个子命令：
       - `xore agent init` - 生成 Agent 提示词模板（支持 Claude/GPT-4 等模型）
@@ -70,7 +70,7 @@
     - 添加 `rand` 0.8（用于随机采样）
   - **测试覆盖**：6 个单元测试全部通过
 
-- **Day 25: 智能推荐系统** ([#day25](plans/day25-smart-recommendations-plan.md))
+- **智能推荐系统**
   - **搜索历史模块** (`xore-core/src/history.rs`)：
     - 实现 `SearchType` 枚举：FullText, Semantic, FileType, SemanticWithFilter
     - 实现 `SearchHistoryEntry` 结构：记录查询、搜索类型、路径、时间戳、结果数、执行时间
@@ -90,7 +90,7 @@
   - **数据存储**：JSON 文件存储在 `~/.xore/history/history.json`
   - **测试覆盖**：16 个单元测试通过
 
-- **Day 24: 语义搜索 CLI 集成** ([#day24](plans/day24-semantic-search-plan.md))
+- **语义搜索 CLI 集成**
   - **CLI 集成**：
     - 实现 `xore f --semantic` 语义搜索命令（`xore-cli/src/commands/find.rs`）
     - 支持环境变量配置模型路径（`XORE_MODEL_PATH`, `XORE_TOKENIZER_PATH`）
@@ -106,7 +106,7 @@
     - 包含使用示例、性能指标、最佳实践
     - 对比全文搜索与语义搜索的区别
 
-- **Day 22-23: ONNX 集成与语义搜索基础** ([#day22-23](plans/day22-23-onnx-plan.md))
+- **ONNX 集成与语义搜索基础**
   - **ONNX Runtime 集成**：
     - 实现 `EmbeddingModel` 加载和推理（`xore-ai/src/embedding.rs`）
     - 支持 MiniLM-L6-v2 模型（384维向量）
@@ -127,7 +127,7 @@
 ### Fixed
 
 - 修复 `is_binary_content()` 函数的UTF-8字符边界错误，避免在8000字节位置切割多字节字符时panic
-- **修复 Watch 模式增量索引功能** ([#watch-mode-fix](plans/fix-watch-mode.md))
+- **修复 Watch 模式增量索引功能**
   - 修复 `execute_watch_mode()` 缺少事件循环调用的问题，现在能够正确处理文件变更事件
   - 修复 `IncrementalIndexer::commit()` 空实现问题，现在能够真正持久化索引变更
   - 添加 `IndexBuilder::commit_changes()` 方法，支持增量索引场景的多次提交
@@ -145,7 +145,7 @@
 
 ### Added
 
-- **Day 20-21: SIMD 优化与数据导出功能** ([#day20-21](plans/day20-21-plan.md))
+- **SIMD 优化与数据导出功能**
   - **SIMD 数值计算优化**：
     - 实现循环展开优化的数值计算函数（`xore-process/src/simd.rs`）
     - 提供 `sum_f64_simd`, `mean_f64_simd`, `variance_f64_simd`, `std_dev_f64_simd` 等函数
@@ -166,7 +166,7 @@
     - 支持 GB 级文件导出，内存占用 <100MB
     - 自动格式检测（从文件扩展名推断）
 
-- **Day 19: 数据质量检测增强**
+- **数据质量检测增强**
   - 扩展 `QualityReport` 结构，增加智能建议和离群值信息
   - 实现智能建议生成系统：
     - 基于缺失值比例自动生成处理建议（Error/Warning/Info 三级严重程度）
@@ -182,7 +182,7 @@
     - 增加离群值检测结果展示
   - **测试覆盖**：新增 5 个单元测试，总计 9 个测试全部通过
 
-- **Day 17-18: SQL 查询引擎实现** ([#day17-18](plans/day17-18-plan.md))
+- **SQL 查询引擎实现**
   - 实现基于 Polars `SQLContext` 的 SQL 查询引擎
   - 支持完整的 SQL 查询功能：
     - 基本查询：`SELECT`, `WHERE`, `ORDER BY`, `LIMIT`
@@ -194,26 +194,26 @@
   - **测试覆盖**：9 个单元测试全部通过
   - **性能优化**：LazyFrame 延迟执行 + 零拷贝读取
 
-- **Day 14: 测试与基准**
+- **测试与基准**
   - 创建完整的基准测试数据集（`examples/benchmark-data/`）
   - 自动化基准测试脚本（`examples/benchmark-results/run_benchmark.sh`）
   - 测试覆盖：130+ 单元测试 + 30+ 集成测试全部通过
   - 代码质量检查：cargo fmt + clippy + check 通过
 
-- **Day 12-13: 搜索优化**
+- **搜索优化**
   - 模糊匹配实现（Levenshtein 距离 <2）
   - 前缀搜索实现（基于 FST）
   - 文件类型权重调整（代码 > 文档 > 日志）
   - 批量索引优化和缓存优化
 
-- **Day 10-11: 增量索引与文件监控**
+- **增量索引与文件监控**
   - 增量索引模块（`xore-search/src/incremental.rs`）
   - 文件监控模块（`xore-search/src/watcher.rs`，基于 notify crate）
   - 事件防抖（500ms）
   - CLI 集成：`xore f "error" --index --watch`
   - Bug 修复：Watch 模式增量索引功能
 
-- **Day 8-9: Tantivy 全文搜索引擎集成**
+- **Tantivy 全文搜索引擎集成**
   - Tantivy 索引核心模块（`xore-search/src/indexer.rs`）
   - 查询引擎（`xore-search/src/query.rs`）
   - 自定义中英文分词器（`xore-search/src/tokenizer.rs`）
@@ -221,7 +221,7 @@
   - 支持分页查询和高亮显示
   - 测试覆盖：20 个单元测试全部通过
 
-- **Day 15-16: Polars 数据处理引擎集成** ([#day15](plans/day15-plan.md))
+- **Polars 数据处理引擎集成**
   - 实现 `DataParser` 模块，支持 CSV 和 Parquet 文件的高性能读取
   - 集成 `memmap2` 实现零拷贝读取，支持 GB 级大文件（阈值 1MB）
   - 实现 `LazyFrame` 模式，延迟执行优化内存占用
