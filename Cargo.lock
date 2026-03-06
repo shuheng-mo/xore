@@ -4632,23 +4632,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f17a85883d4e6d00e8a97c586de764dabcc06133f7f1d55dce5cdc070ad7fe59"
 
 [[package]]
-name = "xore-ai"
-version = "1.0.0"
-dependencies = [
- "anyhow",
- "ndarray 0.15.6",
- "ort",
- "serde",
- "tempfile",
- "thiserror 1.0.69",
- "tokenizers",
- "tokio",
- "tracing",
- "xore-core",
-]
-
-[[package]]
-name = "xore-cli"
+name = "xore"
 version = "1.0.0"
 dependencies = [
  "anyhow",
@@ -4670,6 +4654,22 @@ dependencies = [
  "xore-core",
  "xore-process",
  "xore-search",
+]
+
+[[package]]
+name = "xore-ai"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "ndarray 0.15.6",
+ "ort",
+ "serde",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tokenizers",
+ "tokio",
+ "tracing",
+ "xore-core",
 ]
 
 [[package]]
