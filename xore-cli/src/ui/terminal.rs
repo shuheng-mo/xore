@@ -2,6 +2,8 @@
 //!
 //! 提供终端环境检测功能，包括 TTY 检测、颜色支持和终端宽度。
 
+#![allow(dead_code)]
+
 use std::io::IsTerminal;
 
 /// 终端检测工具

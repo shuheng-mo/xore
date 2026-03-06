@@ -8,7 +8,7 @@ use colored::*;
 use std::io::{Read, Write};
 use std::time::{Duration, Instant};
 
-use crate::ui::{ColorScheme, Table, ICON_PENDING, ICON_SUCCESS};
+use crate::ui::{ICON_PENDING, ICON_SUCCESS};
 use xore_search::{FileScanner, IndexBuilder, ScanConfig, Searcher};
 
 /// 基准测试套件类型
@@ -288,19 +288,16 @@ fn run_search_benchmark(
     iterations: usize,
     warmup: usize,
 ) -> Result<Vec<BenchmarkResult>> {
-    let mut results = Vec::new();
-
-    // 1. 索引构建性能测试
-    results.push(benchmark_index_building(path, iterations, warmup)?);
-
-    // 2. 标准搜索性能测试
-    results.push(benchmark_standard_search(path, iterations)?);
-
-    // 3. 前缀搜索性能测试
-    results.push(benchmark_prefix_search(path, iterations)?);
-
-    // 4. 模糊搜索性能测试
-    results.push(benchmark_fuzzy_search(path, iterations)?);
+    let results = vec![
+        // 1. 索引构建性能测试
+        benchmark_index_building(path, iterations, warmup)?,
+        // 2. 标准搜索性能测试
+        benchmark_standard_search(path, iterations)?,
+        // 3. 前缀搜索性能测试
+        benchmark_prefix_search(path, iterations)?,
+        // 4. 模糊搜索性能测试
+        benchmark_fuzzy_search(path, iterations)?,
+    ];
 
     Ok(results)
 }

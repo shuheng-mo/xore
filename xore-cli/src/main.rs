@@ -333,8 +333,8 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
         }
         Commands::Benchmark { suite, output, iterations, data_path, warmup } => {
             benchmark::execute(benchmark::BenchmarkArgs {
-                suite: suite.clone(),
-                output: output.clone(),
+                suite: *suite,
+                output: *output,
                 iterations: *iterations,
                 data_path: data_path.clone(),
                 warmup: *warmup,
@@ -351,7 +351,7 @@ fn main() {
     // 初始化日志系统
     let log_config = LogConfig::from_args(cli.verbose, cli.quiet, cli.no_color);
     if let Err(e) = log_config.init() {
-        print_anyhow_error(&e.into(), cli.verbose, cli.no_color);
+        print_anyhow_error(&e, cli.verbose, cli.no_color);
         std::process::exit(1);
     }
 

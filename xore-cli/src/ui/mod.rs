@@ -11,9 +11,5 @@ pub mod progress;
 pub mod table;
 pub mod terminal;
 
-pub use colors::{
-    ColorScheme, ICON_ERROR, ICON_INFO, ICON_PENDING, ICON_SUCCESS, ICON_TIP, ICON_WARNING,
-};
-pub use progress::{MultiProgress, ProgressBar, Spinner};
-pub use table::{Alignment, Column, Table, TableStyle};
-pub use terminal::Terminal;
+pub use colors::{ICON_INFO, ICON_PENDING, ICON_SUCCESS, ICON_TIP, ICON_WARNING};
+pub use table::{Column, Table, TableStyle};

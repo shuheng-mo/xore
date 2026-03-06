@@ -291,6 +291,7 @@ fn execute_sample(file: &str, n: usize, strategy: SampleStrategy, json_output: b
                 if rows.is_empty() {
                     df.head(Some(0))
                 } else {
+                    #[allow(unused_imports)]
                     use polars::prelude::*;
                     let mut result = rows[0].clone();
                     for row in rows.iter().skip(1) {
@@ -334,6 +335,7 @@ fn smart_sample(df: &DataFrame, n: usize) -> Result<DataFrame> {
         return Ok(df.head(Some(0)));
     }
 
+    #[allow(unused_imports)]
     use polars::prelude::*;
     let mut result = rows[0].clone();
     for row in rows.iter().skip(1) {

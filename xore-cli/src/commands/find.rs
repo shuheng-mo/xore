@@ -239,7 +239,7 @@ pub fn execute(args: FindArgs) -> Result<()> {
             search_type,
             &args.path,
             sorted_files.len(),
-            stats.elapsed_ms as u64,
+            stats.elapsed_ms,
             args.file_type.clone(),
         ) {
             Ok(_) => {

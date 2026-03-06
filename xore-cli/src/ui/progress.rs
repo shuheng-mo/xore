@@ -2,6 +2,8 @@
 //!
 //! 提供 Spinner（不确定进度）和 ProgressBar（确定进度）组件。
 
+#![allow(dead_code)]
+
 use indicatif::{ProgressBar as IndicatifBar, ProgressStyle};
 use std::time::Duration;
 

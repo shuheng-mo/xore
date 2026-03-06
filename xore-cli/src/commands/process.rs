@@ -7,7 +7,7 @@ use colored::*;
 use std::path::Path;
 use xore_process::{DataExporter, DataParser, DataProfiler, ExportFormat, SqlEngine};
 
-use crate::ui::{Alignment, Column, Table, TableStyle, ICON_SUCCESS, ICON_TIP, ICON_WARNING};
+use crate::ui::{Column, Table, TableStyle, ICON_SUCCESS, ICON_TIP, ICON_WARNING};
 
 /// 执行数据处理命令
 pub fn execute(
@@ -159,7 +159,7 @@ fn preview_json(path: &Path) -> Result<()> {
                     if let serde_json::Value::Object(map) = obj {
                         let cells: Vec<String> = headers
                             .iter()
-                            .map(|h| map.get(*h).map(|v| format_json_value(v)).unwrap_or_default())
+                            .map(|h| map.get(*h).map(format_json_value).unwrap_or_default())
                             .collect();
                         table.add_row(cells);
                     }
@@ -309,8 +309,6 @@ fn export_dataframe(
 
 /// 将 DataFrame 渲染为表格
 fn render_dataframe_as_table(df: &xore_process::DataFrame) -> Result<()> {
-    use xore_process::AnyValue;
-
     let column_names = df.get_column_names();
     let columns: Vec<Column> = column_names.iter().map(|name| Column::new(name)).collect();
 
@@ -367,7 +365,7 @@ fn run_quality_check(path: &Path, extension: &str) -> Result<()> {
 
 /// 使用 Polars 进行质量检查
 fn quality_check_with_polars(path: &Path) -> Result<()> {
-    use xore_process::{Severity, SuggestionType};
+    use xore_process::Severity;
 
     let parser = DataParser::new();
     let profiler = DataProfiler::new();

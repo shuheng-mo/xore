@@ -1,7 +1,6 @@
 //! 集成测试 - 验证各模块协同工作
 
 use std::fs;
-use std::path::PathBuf;
 use tempfile::TempDir;
 use xore_search::{FileScanner, IndexBuilder, IndexConfig, ScanConfig, Searcher};
 

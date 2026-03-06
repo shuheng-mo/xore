@@ -2,6 +2,8 @@
 //!
 //! 提供统一的 CLI 输出颜色风格和图标常量。
 
+#![allow(dead_code)]
+
 use colored::{ColoredString, Colorize};
 
 /// 成功图标

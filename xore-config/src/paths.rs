@@ -2,7 +2,7 @@
 //!
 //! 提供统一的路径管理功能，确保所有运行时数据存储在 ~/.xore/ 目录下。
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -25,6 +25,7 @@ pub enum PathError {
 #[derive(Debug, Clone)]
 pub struct XorePaths {
     /// 用户主目录
+    #[allow(dead_code)]
     home: PathBuf,
     /// XORE 根目录 (~/.xore)
     xore_dir: PathBuf,
@@ -49,7 +50,7 @@ impl XorePaths {
     }
 
     /// 获取 XORE 根目录 (~/.xore)
-    pub fn xore_dir(&self) -> &PathBuf {
+    pub fn xore_dir(&self) -> &Path {
         &self.xore_dir
     }
 
@@ -130,7 +131,7 @@ impl XorePaths {
     }
 
     /// 将路径转换为相对路径表示（用于配置文件中存储）
-    pub fn to_tilde_path(path: &PathBuf) -> String {
+    pub fn to_tilde_path(path: &Path) -> String {
         let home = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
         if let Ok(rel) = path.strip_prefix(&home) {
             let mut result = String::from("~/");
@@ -156,7 +157,7 @@ mod tests {
     #[test]
     fn test_expand_path() {
         let temp_dir = TempDir::new().unwrap();
-        let paths = XorePaths::from_home(temp_dir.path().to_path_buf());
+        let _paths = XorePaths::from_home(temp_dir.path().to_path_buf());
 
         // 测试 ~ 展开
         let expanded = XorePaths::expand_path("~/test");

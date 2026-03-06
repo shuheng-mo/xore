@@ -182,7 +182,7 @@ impl Default for UiConfig {
 }
 
 /// XORE 全局配置（极简设计）
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Config {
     /// 运行时环境配置
     #[serde(default)]
@@ -199,18 +199,6 @@ pub struct Config {
     /// 界面配置
     #[serde(default)]
     pub ui: UiConfig,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            env: EnvConfig::default(),
-            paths: PathsConfig::default(),
-            search: SearchConfig::default(),
-            exclude: ExcludeConfig::default(),
-            ui: UiConfig::default(),
-        }
-    }
 }
 
 impl Config {

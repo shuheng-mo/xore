@@ -98,7 +98,7 @@ impl EmbeddingModel {
         let seq_len = ids.len().min(self.max_length);
         let mut input_ids = vec![0i64; self.max_length];
         let mut input_mask = vec![0i64; self.max_length];
-        let mut token_type_ids = vec![0i64; self.max_length]; // 添加 token_type_ids
+        let token_type_ids = vec![0i64; self.max_length]; // 添加 token_type_ids
 
         for i in 0..seq_len {
             input_ids[i] = ids[i] as i64;
@@ -132,6 +132,7 @@ impl EmbeddingModel {
         let output_array = output_tensor.try_extract_tensor::<f32>().context("提取输出张量失败")?;
 
         // 6. 平均池化 (取所有 token 的平均值)
+        #[allow(clippy::needless_borrow)]
         let embeddings =
             Self::mean_pooling(&output_array.1, &input_mask, self.max_length, self.dimension)?;
 
@@ -168,12 +169,12 @@ impl EmbeddingModel {
         let mut pooled = vec![0.0f32; hidden_size];
         let mut count = 0;
 
-        for i in 0..seq_len {
-            if attention_mask[i] == 1 {
-                for j in 0..hidden_size {
+        for (i, mask) in attention_mask.iter().enumerate().take(seq_len) {
+            if *mask == 1 {
+                for (j, pooled_val) in pooled.iter_mut().enumerate() {
                     let idx = i * hidden_size + j;
                     if idx < hidden_states.len() {
-                        pooled[j] += hidden_states[idx];
+                        *pooled_val += hidden_states[idx];
                     }
                 }
                 count += 1;
