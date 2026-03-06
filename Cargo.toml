@@ -95,16 +95,7 @@ strip = true
 [profile.bench]
 inherits = "release"
 
-# cargo-dist 配置
-[workspace.metadata.dist]
-cargo-dist-version = "0.22.1"
-ci = "github"
-installers = ["shell"]
-targets = [
-  "aarch64-apple-darwin",
-  "x86_64-apple-darwin",
-  "x86_64-unknown-linux-gnu",
-  "x86_64-pc-windows-msvc",
-]
-publish-jobs = ["homebrew"]
-pr-run-mode = "plan"
+# The profile that 'dist' will build with
+[profile.dist]
+inherits = "release"
+lto = "thin"
