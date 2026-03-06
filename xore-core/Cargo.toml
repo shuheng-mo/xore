@@ -34,7 +34,7 @@ chrono.workspace = true
 dirs.workspace = true
 
 # XORE 配置
-xore-config = { path = "../xore-config" }
+xore-config = { path = "../xore-config", version = "1.0.0" }
 
 [dev-dependencies]
 tempfile.workspace = true

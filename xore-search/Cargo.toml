@@ -9,8 +9,8 @@ description = "XORE Search Engine - Full-text and semantic search"
 
 [dependencies]
 # 内部依赖
-xore-core = { path = "../xore-core" }
-xore-ai = { path = "../xore-ai" }
+xore-core = { path = "../xore-core", version = "1.0.0" }
+xore-ai = { path = "../xore-ai", version = "1.0.0" }
 
 # 搜索引擎
 tantivy.workspace = true

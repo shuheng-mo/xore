@@ -9,7 +9,7 @@ description = "XORE AI Module - Semantic embeddings and vector search"
 
 [dependencies]
 # 内部依赖
-xore-core = { path = "../xore-core" }
+xore-core = { path = "../xore-core", version = "1.0.0" }
 
 # AI/ML
 ort.workspace = true

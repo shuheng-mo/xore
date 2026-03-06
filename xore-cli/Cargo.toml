@@ -19,10 +19,10 @@ mimalloc = ["dep:mimalloc"]
 # 性能优化 - 可选分配器
 mimalloc = { workspace = true, optional = true }
 # 内部依赖
-xore-core = { path = "../xore-core" }
-xore-search = { path = "../xore-search" }
-xore-process = { path = "../xore-process" }
-xore-ai = { path = "../xore-ai" }
+xore-core = { path = "../xore-core", version = "1.0.0" }
+xore-search = { path = "../xore-search", version = "1.0.0" }
+xore-process = { path = "../xore-process", version = "1.0.0" }
+xore-ai = { path = "../xore-ai", version = "1.0.0" }
 
 # 数据处理
 polars = { workspace = true }
