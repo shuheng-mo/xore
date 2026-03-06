@@ -13,6 +13,7 @@ use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use tracing::{debug, info, warn};
 use xore_ai::{Document, EmbeddingModel, VectorSearcher};
+use xore_config::XorePaths;
 use xore_core::{
     format_time_ago, get_default_history_path, RecommendationEngine, SearchHistoryEntry, SearchType,
 };
@@ -558,16 +559,30 @@ fn build_index(args: &FindArgs, index_path: &Path) -> Result<()> {
 
 /// 获取 ONNX 模型路径
 fn get_model_path() -> PathBuf {
-    env::var("XORE_MODEL_PATH")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("assets/models/onnx/model.onnx"))
+    // 优先使用环境变量
+    if let Ok(path) = env::var("XORE_MODEL_PATH") {
+        return PathBuf::from(path);
+    }
+    // 默认使用 ~/.xore/models/ 目录
+    if let Ok(paths) = XorePaths::new() {
+        return paths.models_dir().join("onnx/model.onnx");
+    }
+    // 回退到旧路径（用于开发）
+    PathBuf::from("assets/models/onnx/model.onnx")
 }
 
 /// 获取 Tokenizer 路径
 fn get_tokenizer_path() -> PathBuf {
-    env::var("XORE_TOKENIZER_PATH")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("assets/models/tokenizer.json"))
+    // 优先使用环境变量
+    if let Ok(path) = env::var("XORE_TOKENIZER_PATH") {
+        return PathBuf::from(path);
+    }
+    // 默认使用 ~/.xore/models/ 目录
+    if let Ok(paths) = XorePaths::new() {
+        return paths.models_dir().join("tokenizer.json");
+    }
+    // 回退到旧路径（用于开发）
+    PathBuf::from("assets/models/tokenizer.json")
 }
 
 /// 读取文件内容（限制大小）

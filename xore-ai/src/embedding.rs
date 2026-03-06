@@ -11,7 +11,7 @@
 //! 由于 ONNX Runtime 的 Session::run() 需要可变引用，
 //! 所有使用模型的方法都需要 &mut self。
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use ort::session::builder::GraphOptimizationLevel;
 use ort::session::Session;
 use ort::value::TensorRef;
@@ -58,13 +58,13 @@ impl EmbeddingModel {
 
         // 2. 创建 ONNX Runtime 会话
         let session = Session::builder()
-            .context("创建 Session Builder 失败")?
+            .map_err(|e| anyhow::anyhow!("创建 Session Builder 失败: {:?}", e))?
             .with_optimization_level(GraphOptimizationLevel::Level3)
-            .context("设置优化级别失败")?
+            .map_err(|e| anyhow::anyhow!("设置优化级别失败: {:?}", e))?
             .with_intra_threads(4)
-            .context("设置线程数失败")?
+            .map_err(|e| anyhow::anyhow!("设置线程数失败: {:?}", e))?
             .commit_from_file(model_path)
-            .context("加载 ONNX 模型失败")?;
+            .map_err(|e| anyhow::anyhow!("加载 ONNX 模型失败: {:?}", e))?;
 
         debug!("模型加载成功");
 
@@ -109,12 +109,12 @@ impl EmbeddingModel {
         // 3. 创建 TensorRef (使用元组格式: (shape, &data))
         let shape = vec![1_usize, self.max_length];
         let input_ids_tensor = TensorRef::from_array_view((shape.clone(), input_ids.as_slice()))
-            .context("创建 input_ids tensor 失败")?;
+            .map_err(|e| anyhow::anyhow!("创建 input_ids tensor 失败: {:?}", e))?;
         let attention_mask_tensor =
             TensorRef::from_array_view((shape.clone(), input_mask.as_slice()))
-                .context("创建 attention_mask tensor 失败")?;
+                .map_err(|e| anyhow::anyhow!("创建 attention_mask tensor 失败: {:?}", e))?;
         let token_type_ids_tensor = TensorRef::from_array_view((shape, token_type_ids.as_slice()))
-            .context("创建 token_type_ids tensor 失败")?;
+            .map_err(|e| anyhow::anyhow!("创建 token_type_ids tensor 失败: {:?}", e))?;
 
         // 4. 运行推理
         let outputs = self
@@ -124,12 +124,13 @@ impl EmbeddingModel {
                 "attention_mask" => attention_mask_tensor,
                 "token_type_ids" => token_type_ids_tensor,
             ])
-            .context("ONNX 推理失败")?;
+            .map_err(|e| anyhow::anyhow!("ONNX 推理失败: {:?}", e))?;
 
         // 5. 提取输出 (last_hidden_state)
         // MiniLM 模型输出: [batch_size, seq_len, hidden_size]
         let output_tensor = &outputs[0];
-        let output_array = output_tensor.try_extract_tensor::<f32>().context("提取输出张量失败")?;
+        let output_array = output_tensor.try_extract_tensor::<f32>()
+            .map_err(|e| anyhow::anyhow!("提取输出张量失败: {:?}", e))?;
 
         // 6. 平均池化 (取所有 token 的平均值)
         #[allow(clippy::needless_borrow)]
