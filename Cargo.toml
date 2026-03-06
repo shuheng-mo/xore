@@ -99,8 +99,7 @@ inherits = "release"
 [workspace.metadata.dist]
 cargo-dist-version = "0.22.1"
 ci = "github"
-installers = ["shell", "homebrew"]
-tap = "shuheng-mo/homebrew-xore"
+installers = ["shell"]
 targets = [
   "aarch64-apple-darwin",
   "x86_64-apple-darwin",
