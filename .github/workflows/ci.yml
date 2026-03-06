@@ -66,18 +66,21 @@ jobs:
       - uses: actions/checkout@v4
       - name: 安装 Rust 工具链
         uses: dtolnay/rust-toolchain@stable
-      - name: 安装 Tarpaulin
-        run: cargo install cargo-tarpaulin
+        with:
+          components: llvm-tools-preview
+      - name: 安装 cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
       - name: 生成覆盖率报告
         run: |
-          # 只测试库和二进制文件，不运行测试（避免外部依赖的测试编译问题）
-          cargo tarpaulin --out Xml --lib --bins \
-            --exclude-files '.*/target/.*' \
-            --exclude-files '.*/tests/.*'
+          cargo llvm-cov \
+            --lcov --output-path lcov.info \
+            --workspace \
+            --exclude polars-arrow \
+            --ignore-filename-regex 'target/.*'
       - name: 上传到 Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: ./cobertura.xml
+          files: lcov.info
           fail_ci_if_error: false
 
   # CI 阶段只做编译验证，真正的跨平台 Release 构建由 release.yml 负责
