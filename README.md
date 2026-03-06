@@ -143,6 +143,21 @@ xore/
 
 ### 编译安装
 
+#### 快速安装（推荐）
+
+```bash
+# 方式一：一键安装脚本（macOS/Linux）
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/shuheng-mo/xore/releases/latest/download/xore-installer.sh | sh
+
+# 方式二：使用 cargo-binstall
+cargo binstall xore
+
+# 方式三：源码编译安装
+cargo install --path xore-cli
+```
+
+#### 手动编译
+
 - **克隆项目**
 
 ```bash

@@ -139,6 +139,21 @@ xore/
 
 ### Build & Install
 
+#### Quick Install (Recommended)
+
+```bash
+# Option 1: One-line installer (macOS/Linux)
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/shuheng-mo/xore/releases/latest/download/xore-installer.sh | sh
+
+# Option 2: Using cargo-binstall
+cargo binstall xore
+
+# Option 3: Build from source
+cargo install --path xore-cli
+```
+
+#### Manual Build
+
 1. **Clone the repository**
 
 ```bash
