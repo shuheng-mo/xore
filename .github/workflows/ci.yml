@@ -84,7 +84,7 @@ jobs:
           # 排除 polars-arrow 依赖问题（外部依赖）
           cargo tarpaulin --out Xml --all-features \
             --exclude-files '.*/target/.*' \
-            --packages xore-cli,xore-config,xore-core,xore-search,xore-process,xore-ai
+            --packages xore-cli xore-config xore-core xore-search xore-process xore-ai
 
       - name: 上传到Codecov
         uses: codecov/codecov-action@v4
