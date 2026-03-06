@@ -81,8 +81,9 @@ jobs:
 
       - name: 生成覆盖率报告
         run: |
-          # 排除 polars-arrow 依赖问题（外部依赖）
-          cargo tarpaulin --out Xml --all-features \
+          # 排除 polars-arrow 依赖问题（外部依赖导致的编译错误）
+          cargo tarpaulin --out Xml \
+            --exclude polars-arrow \
             --exclude-files '.*/target/.*' \
             --packages xore-cli xore-config xore-core xore-search xore-process xore-ai
 
