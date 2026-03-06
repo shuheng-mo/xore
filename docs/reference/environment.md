@@ -6,9 +6,11 @@ XORE 支持通过环境变量配置运行时行为。
 
 | 变量 | 说明 | 默认值 | 示例 |
 |------|------|--------|------|
-| `XORE_CONFIG_PATH` | 配置文件路径 | `~/.config/xore/config.toml` | `/etc/xore/config.toml` |
+| `XORE_CONFIG_PATH` | 配置文件路径 | `~/.xore/config.toml` | `/etc/xore/config.toml` |
 | `XORE_INDEX_PATH` | 索引存储路径 | `~/.xore/index` | `/var/xore/index` |
 | `XORE_HISTORY_PATH` | 搜索历史存储路径 | `~/.xore/history` | `/var/xore/history` |
+| `XORE_LOGS_PATH` | 日志存储路径 | `~/.xore/logs` | `/var/xore/logs` |
+| `XORE_MODELS_PATH` | AI 模型存储路径 | `~/.xore/models` | `/var/xore/models` |
 | `XORE_LOG_LEVEL` | 日志级别 | `info` | `debug`, `trace` |
 | `XORE_NUM_THREADS` | 工作线程数 | CPU 核心数 | `8` |
 | `NO_COLOR` | 禁用彩色输出 | 未设置 | `1` |
@@ -50,6 +52,26 @@ xore find "error"
 ```
 
 > **注意：** 历史记录以 JSON 格式存储在 `history.json` 文件中。
+
+### XORE_LOGS_PATH
+
+指定日志文件的存储位置。
+
+```bash
+# 将日志存储到指定目录
+export XORE_LOGS_PATH=/var/log/xore
+xore find
+```
+
+### XORE_MODELS_PATH
+
+指定 AI 模型的存储位置。
+
+```bash
+# 将模型存储到指定目录
+export XORE_MODELS_PATH=/data/xore/models
+xore find --semantic "error"
+```
 
 ### XORE_LOG_LEVEL
 
@@ -128,7 +150,7 @@ xore find
 4. **默认值** - 最低优先级
 
 ```bash
-# 配置文件设置 threads = 4
+# 配置文件设置 num_threads = 4
 # 环境变量设置 XORE_NUM_THREADS=8
 # 命令行参数 --threads 16
 

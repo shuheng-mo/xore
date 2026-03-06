@@ -1,19 +1,24 @@
-<div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-  <img src="assets/xore.png" alt="XORE Icon" height="64">
-  <div>
-    <h1 style="margin: 0;">XORE</h1>
-    <p style="margin: 0; color: #666; font-size: 1.1em;">Explore the Abyss, Extract the Core</p>
-  </div>
-</div>
+<table>
+<tr>
+<td width="140" valign="middle">
+<img src="assets/xore.png" alt="XORE" width="112" />
+</td>
+<td valign="middle">
+<h1>XORE</h1>
+<p><em>Explore the Abyss, Extract the Core</em></p>
+<p>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License" /></a>
+<a href="https://github.com/shuheng-mo/xore/releases"><img src="https://img.shields.io/badge/version-1.0.0-green.svg" alt="Version" /></a>
+<a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.91+-orange.svg" alt="Rust" /></a>
+<a href="https://github.com/shuheng-mo/xore/actions/workflows/ci.yml"><img src="https://github.com/shuheng-mo/xore/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+<a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" /></a>
+</p>
+<p><a href="README_EN.md">English</a> | <a href="README.md">简体中文</a></p>
+</td>
+</tr>
+</table>
 
-[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/shuheng-mo/xore/releases)
-[![Rust](https://img.shields.io/badge/rust-1.91+-orange.svg)](https://www.rust-lang.org/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-
-[English](README_EN.md) | [简体中文](README.md)
-
-**A local developer tool with extreme performance, deeply fusing semantic search and instant data analysis**
+**A high-performance local CLI tool that unifies semantic search and instant data analysis — millisecond responses, zero-config experience, optimized for developers and AI Agents.**
 
 ---
 
@@ -177,65 +182,13 @@ Please refer to [docs/README.md](docs/README.md) for the complete usage guide.
 ```
 xore/
 ├── xore-cli/              # CLI interface
-│   ├── src/
-│   │   ├── main.rs       # Entry point
-│   │   ├── commands/     # Command implementations
-│   │   │   ├── find.rs   # Find command
-│   │   │   ├── process.rs # Process command
-│   │   │   ├── agent.rs  # Agent command
-│   │   │   └── benchmark.rs # Benchmark command
-│   │   └── ui/           # User interface
-│   └── Cargo.toml
-│
-├── xore-core/             # Core module
-│   ├── src/
-│   │   ├── config.rs     # Configuration management
-│   │   ├── error/        # Error handling system
-│   │   ├── history.rs    # Search history
-│   │   ├── recommendation.rs # Smart recommendations
-│   │   └── types.rs      # Common types
-│   └── Cargo.toml
-│
+├── xore-config/           # Configuration management
+├── xore-core/             # Core shared module
 ├── xore-search/           # Search engine
-│   ├── src/
-│   │   ├── indexer.rs    # Index building
-│   │   ├── incremental.rs # Incremental indexing
-│   │   ├── query.rs      # Query processing
-│   │   ├── scanner.rs    # File scanning
-│   │   ├── tokenizer.rs  # Tokenizer
-│   │   └── watcher.rs    # File watching
-│   └── Cargo.toml
-│
-├── xore-process/          # Data processing
-│   ├── src/
-│   │   ├── parser.rs     # Data parsing
-│   │   ├── sql.rs        # SQL engine
-│   │   ├── profiler.rs   # Data profiling
-│   │   ├── simd.rs       # SIMD numeric optimization
-│   │   └── export.rs     # Export features
-│   └── Cargo.toml
-│
-├── xore-ai/               # AI module
-│   ├── src/
-│   │   ├── embedding.rs  # Vector embeddings
-│   │   ├── search.rs     # Vector search engine
-│   │   └── tokenizer.rs  # Tokenizer
-│   └── Cargo.toml
-│
-├── Cargo.toml            # Workspace config
-├── README.md             # Chinese README
-├── README_EN.md          # English README (this file)
-├── LICENSE               # GPL-3.0 License
-├── CONTRIBUTING.md       # Contributing guide
-├── CHANGELOG.md          # Changelog
-├── rustfmt.toml          # Rust formatting config
-├── .gitignore            # Git ignore rules
-├── docs/                 # Documentation
-│   ├── README.md         # Usage guide
-│   ├── getting-started.md # Getting started
-│   ├── commands/         # Command reference
-│   └── reference/        # Configuration reference
-└── assets/               # Project assets (icons, etc.)
+├── xore-process/          # Data processing engine
+├── xore-ai/               # AI semantic search module
+├── docs/                  # Project documentation
+└── examples/              # Example data and scripts
 ```
 
 ---
@@ -379,57 +332,44 @@ cargo tarpaulin --out Html
 
 ## Benchmarks
 
-XORE delivers outstanding performance across metrics.
+Based on latest test dataset results (2026-03-05):
 
-### Agent Efficiency (Token Savings)
+### Search Performance Comparison
 
-| Task | Traditional (Bash/rg) | XORE (Agent-Native) | Token Savings |
-| :--- | :--- | :--- | :--- |
-| Log Analysis (50MB) | ~15,000 Tokens | **~50 Tokens** | **99.6%** |
-| Schema Discovery | ~2,000 Tokens | **~30 Tokens** | **98.5%** |
-| Data Aggregation | ~10,000 Tokens | **~100 Tokens** | **99.0%** |
+| Scenario | ripgrep | XORE | Winner |
+|----------|---------|------|--------|
+| Small log search (500 lines) | 14ms | 3ms | ✅ XORE |
+| Medium log search (200K lines) | 13ms | 2ms | ✅ XORE |
 
-### Search Performance
+### Data Processing Performance Comparison
 
-| Operation | Metric | Status |
-|-----------|--------|--------|
-| File scanning | 12,511 files/s | ✅ |
-| Index build | 92,678 MB/s | ✅ **Exceeds target** |
-| Standard search (p99) | 0.2 ms | ✅ **Exceeds target** |
-| Prefix search (p99) | 0.0 ms | ✅ **Exceeds target** |
-| Fuzzy search (p99) | 0.3 ms | ✅ **Exceeds target** |
-| Incremental index latency | ~45 ms | ✅ |
-
-### Detailed Metrics
-
-**Index Build:**
-
-- Dataset: 9.5 GB (17 files)
-- Average time: 105.2 ms
-- Throughput: 92,678 MB/s
-
-**Search Latency Distribution:**
-
-- Standard search: p50=0.0ms, p95=0.2ms, p99=0.2ms
-- Prefix search: p50=0.0ms, p99=0.0ms
-- Fuzzy search: p50=0.0ms, p99=0.3ms
+| Scenario | DuckDB | Pandas | XORE | Winner |
+|----------|--------|--------|------|--------|
+| Small CSV (100 rows) | 135ms | - | 5ms | ✅ XORE |
+| Small JSON (100 rows) | - | - | 2ms | ✅ XORE |
+| Small Parquet (100 rows) | 23ms | - | 2ms | ✅ XORE |
+| Medium CSV COUNT (100K rows) | 433ms | - | 43ms | ✅ XORE |
+| Medium CSV GROUP BY | 156ms | - | 34ms | ✅ XORE |
+| Medium CSV WHERE | 126ms | - | 26ms | ✅ XORE |
+| Medium Parquet COUNT | 21ms | - | 9ms | ✅ XORE |
+| Large CSV (600MB, ~10M rows) | 501ms | 8060ms | 1268ms | ❌ ripgrep |
 
 ### Performance Advantages
 
-| Comparison | Traditional (grep/rg) | XORE (Agent-Native) | Advantage |
-|-----------|----------------------|---------------------|-----------|
+| Comparison | Traditional Tools | XORE | Advantage |
+|-----------|-------------------|------|-----------|
 | **Token Efficiency** | Raw text transfer | **Pushdown / Structured Summary** | **90%+ Token savings** |
-| **Full-text search** | grep (linear scan) | Index-accelerated | 1000x+ |
-| **File finding** | find (dir traversal) | Parallel scan | 10x+ |
-| **Regex search** | ripgrep (no index) | Post-index search | 100x+ |
+| **Full-text search** | ripgrep (linear scan) | Index-accelerated | 5x+ |
+| **Data processing** | DuckDB/Pandas | Polars engine | 3-10x |
+| **Large file handling** | Memory loading | Zero-copy mmap | 90%+ memory savings |
 
 ### Memory Usage
 
 - Index: ~15–20% of raw data size
+- Large files: Zero-copy mmap, near-zero memory overhead
 - Runtime: Peak memory < 2× data size
-- Lazy evaluation: Supports datasets larger than RAM
 
-*Test environment: macOS (Apple Silicon), mimalloc allocator*
+*Test environment: macOS (Apple Silicon), compared with ripgrep 15.1.0, DuckDB v1.4.4*
 
 ---
 

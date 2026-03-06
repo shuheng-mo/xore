@@ -4673,6 +4673,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "xore-config"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "dirs",
+ "serde",
+ "tempfile",
+ "thiserror 1.0.69",
+ "toml",
+ "tracing",
+]
+
+[[package]]
 name = "xore-core"
 version = "1.0.0"
 dependencies = [
@@ -4688,6 +4701,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "walkdir",
+ "xore-config",
 ]
 
 [[package]]

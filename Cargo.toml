@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "xore-cli",
+    "xore-config",
     "xore-core",
     "xore-search",
     "xore-process",

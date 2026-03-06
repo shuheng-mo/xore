@@ -212,7 +212,3 @@ cargo test -p xore-ai test_cosine_similarity
 - `tokenizers`: HuggingFace tokenizers
 - `ndarray`: 数组操作
 - `anyhow`: 错误处理
-
-## 许可证
-
-MIT

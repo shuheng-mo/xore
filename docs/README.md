@@ -77,18 +77,16 @@ docs/
 - 测试覆盖率: >80%
 - **Agent-Native 定位**：通过计算下推和结构化摘要降低 90%+ Token 消耗
 
-## 最新功能 (Day 27)
+## 最新功能
 
 ### 文档与示例完善 ✅
 
-经过 27 天的开发，XORE MVP 已完成所有核心功能：
+XORE MVPb版本已完成，文档和示例也已完善：
 
-- **Week 1**: Core Framework（CLI、文件扫描、日志、错误处理）
-- **Week 2**: Search Engine（Tantivy、增量索引、搜索优化）
-- **Week 3**: Data Reactor（Polars、SQL、SIMD、导出）
-- **Week 4**: AI & Polishing（ONNX、语义搜索、Agent、文档）
-
-**总计**: 27/28 天任务完成 ✅
+- Core Framework（CLI、文件扫描、日志、错误处理）
+- Search Engine（Tantivy、增量索引、搜索优化）
+- Data Reactor（Polars、SQL、SIMD、导出）
+- AI & Polishing（ONNX、语义搜索、Agent、文档）
 
 ### SQL 查询引擎 ✅
 

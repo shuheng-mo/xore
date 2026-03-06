@@ -33,5 +33,8 @@ chrono.workspace = true
 # 路径工具
 dirs.workspace = true
 
+# XORE 配置
+xore-config = { path = "../xore-config" }
+
 [dev-dependencies]
 tempfile.workspace = true

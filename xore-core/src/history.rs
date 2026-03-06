@@ -11,10 +11,11 @@ use std::sync::Mutex;
 use tracing::{debug, error, info};
 
 /// 搜索类型枚举
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum SearchType {
     /// 全文搜索
+    #[default]
     FullText,
     /// 语义搜索
     Semantic,
@@ -22,12 +23,6 @@ pub enum SearchType {
     FileType,
     /// 语义搜索 + 过滤
     SemanticWithFilter,
-}
-
-impl Default for SearchType {
-    fn default() -> Self {
-        SearchType::FullText
-    }
 }
 
 impl std::fmt::Display for SearchType {
@@ -123,8 +118,7 @@ impl HistoryStore {
 
         // 验证目录确实存在
         if !db_path.is_dir() {
-            return Err(anyhow::anyhow!("Failed to create history directory: {:?}", db_path))
-                .into();
+            return Err(anyhow::anyhow!("Failed to create history directory: {:?}", db_path));
         }
 
         info!("Initializing history store at: {:?}", db_path);
@@ -168,14 +162,14 @@ impl HistoryStore {
     }
 
     /// 保存历史记录到磁盘
+    #[allow(dead_code)]
     fn save_to_disk(&self) -> Result<()> {
         let history_file = self.db_path.join("history.json");
 
         // 验证目录存在
         if !self.db_path.is_dir() {
             error!("History directory does not exist: {:?}", self.db_path);
-            return Err(anyhow::anyhow!("History directory does not exist: {:?}", self.db_path))
-                .into();
+            return Err(anyhow::anyhow!("History directory does not exist: {:?}", self.db_path));
         }
 
         let entries = self.entries.lock().unwrap();
@@ -190,8 +184,7 @@ impl HistoryStore {
                 history_file.display(),
                 e
             ))
-            .context("Failed to write history file")
-            .into();
+            .context("Failed to write history file");
         }
 
         debug!("Saved {} history entries to disk", entries.len());
@@ -222,8 +215,7 @@ impl HistoryStore {
         // 先验证目录存在
         if !self.db_path.is_dir() {
             error!("History directory does not exist when saving: {:?}", self.db_path);
-            return Err(anyhow::anyhow!("History directory does not exist: {:?}", self.db_path))
-                .into();
+            return Err(anyhow::anyhow!("History directory does not exist: {:?}", self.db_path));
         }
 
         let history_file = self.db_path.join("history.json");
@@ -237,8 +229,7 @@ impl HistoryStore {
                 history_file.display(),
                 e
             ))
-            .context("Failed to write history file")
-            .into();
+            .context("Failed to write history file");
         }
 
         // 清除统计缓存
@@ -349,8 +340,7 @@ impl HistoryStore {
 
         for entry in entries.iter() {
             if let Some(ref file_type) = entry.file_type {
-                let path_associations =
-                    associations.entry(entry.path.clone()).or_insert_with(HashMap::new);
+                let path_associations = associations.entry(entry.path.clone()).or_default();
                 *path_associations.entry(file_type.clone()).or_insert(0) += 1;
             }
         }
