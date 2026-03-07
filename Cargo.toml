@@ -6,21 +6,26 @@ members = [
     "xore-search",
     "xore-process",
     "xore-ai",
+    "xore-mcp",
 ]
 resolver = "2"
 
 [workspace.package]
-version = "1.0.3"
+version = "1.1.0"
 edition = "2021"
 authors = ["XORE Team"]
 license = "MIT"
-repository = "https://github.com/yourusername/xore"
-homepage = "https://github.com/yourusername/xore"
+repository = "https://github.com/shuheng-mo/xore"
+homepage = "https://github.com/shuheng-mo/xore"
 documentation = "https://docs.rs/xore"
 keywords = ["search", "data-processing", "semantic", "cli"]
 categories = ["command-line-utilities", "text-processing", "data-structures"]
 
 [workspace.dependencies]
+# MCP
+rmcp = { version = "1", features = ["server", "transport-io"] }
+schemars = "0.8"
+
 # CLI
 clap = { version = "4.5", features = ["derive", "cargo"] }
 colored = "3.0"

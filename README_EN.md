@@ -8,7 +8,7 @@
 <p><em>Explore the Abyss, Extract the Core</em></p>
 <p>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License" /></a>
-<a href="https://github.com/shuheng-mo/xore/releases"><img src="https://img.shields.io/badge/version-1.0.3-green.svg" alt="Version" /></a>
+<a href="https://github.com/shuheng-mo/xore/releases"><img src="https://img.shields.io/badge/version-1.1.0-green.svg" alt="Version" /></a>
 <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.91+-orange.svg" alt="Rust" /></a>
 <a href="https://github.com/shuheng-mo/xore/actions/workflows/ci.yml"><img src="https://github.com/shuheng-mo/xore/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
 <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" /></a>
@@ -65,6 +65,11 @@ XORE unifies these capabilities with Rust’s zero-cost abstractions and high-pe
 - **Backend Developers**: Analyze logs, audit configuration files, find code snippets
 - **DevOps Engineers**: Troubleshoot production issues, analyze monitoring metrics
 - **Researchers**: Process experimental data, search and organize literature
+- **AI Agents**: Agent-friendly interfaces with structured summaries and smart sampling, significantly reducing token usage and conversation turns.
+
+### MCP Server Support
+
+XORE provides an MCP server implementation that integrates with AI assistants like Roo Code and Claude Desktop. See [MCP Server Documentation](docs/mcp.md) for details.
 
 ---
 

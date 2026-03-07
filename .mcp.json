@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "xore": {
+      "type": "stdio",
+      "command": "/Users/shuheng-mo/Git Workspaces/xore/target/release/xore-mcp",
+      "args": [],
+      "env": {}
+    }
+  }
+}

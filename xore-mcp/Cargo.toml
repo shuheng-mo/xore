@@ -1,0 +1,39 @@
+[package]
+name = "xore-mcp"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "XORE MCP Server - Model Context Protocol server exposing xore as an AI tool"
+
+[[bin]]
+name = "xore-mcp"
+path = "src/main.rs"
+
+[dependencies]
+# 内部依赖
+xore-config  = { path = "../xore-config",  version = "1.0.3" }
+xore-core    = { path = "../xore-core",    version = "1.0.3" }
+xore-search  = { path = "../xore-search",  version = "1.0.3" }
+xore-process = { path = "../xore-process", version = "1.0.3" }
+rmcp = { version = "1.1.0", features = ["transport-io"] }
+schemars.workspace = true
+
+# 数据处理
+polars.workspace = true
+
+# 异步运行时（仅用于 MCP 事件循环 + spawn_blocking）
+tokio.workspace = true
+
+# 序列化
+serde.workspace = true
+serde_json.workspace = true
+
+# 错误处理
+anyhow.workspace = true
+thiserror.workspace = true
+
+# 日志（写入 stderr，stdout 保留给 MCP 协议）
+tracing.workspace = true
+tracing-subscriber.workspace = true

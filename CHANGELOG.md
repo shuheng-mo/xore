@@ -5,9 +5,15 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [1.1.0] (2026-03-07)
 
 ### Added
+
+- **MCP 服务器支持**
+  - 新增 `xore-mcp` crate，提供 Model Context Protocol 服务器
+  - 集成到 Roo Code 等 AI 助手，实现文件搜索和数据处理能力
+  - 提供 7 个 MCP 工具：`find_files`, `search_index`, `get_schema`, `query_data`, `sample_data`, `quality_check`, `get_config`
+  - 详细文档见 [docs/mcp.md](docs/mcp.md)
 
 - **错误处理优化 (修复)**
   - **Bug 修复**：修复 `--verbose` 标志在子命令上不工作的问题
@@ -258,5 +264,5 @@
 - 零拷贝数据管道
 - 并发索引构建
 
-[Unreleased]: https://github.com/yourusername/xore/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/yourusername/xore/releases/tag/v1.0.0
+[1.1.0]: https://github.com/shuheng-mo/xore/releases/tag/v1.1.0
+[1.0.0]: https://github.com/shuheng-mo/xore/releases/tag/v1.0.0

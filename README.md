@@ -8,7 +8,7 @@
 <p><em>Explore the Abyss, Extract the Core</em></p>
 <p>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License" /></a>
-<a href="https://github.com/shuheng-mo/xore/releases"><img src="https://img.shields.io/badge/version-1.0.3-green.svg" alt="Version" /></a>
+<a href="https://github.com/shuheng-mo/xore/releases"><img src="https://img.shields.io/badge/version-1.1.0-green.svg" alt="Version" /></a>
 <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.91+-orange.svg" alt="Rust" /></a>
 <a href="https://github.com/shuheng-mo/xore/actions/workflows/ci.yml"><img src="https://github.com/shuheng-mo/xore/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
 <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" /></a>
@@ -66,6 +66,10 @@ XORE 通过 Rust 的零成本抽象和高性能库，将这些能力统一到一
 - **DevOps 工程师**：排查生产问题，监控指标分析
 - **研究人员**：处理实验数据，文献检索和整理
 - **AI Agents**：提供 Agent 友好的接口，支持结构化摘要和智能采样，极大节省 Token 用量和对话轮次。
+
+### MCP 服务器支持
+
+XORE 提供 MCP 服务器实现，可集成到 Roo Code、Claude Desktop 等 AI 助手中。详见 [MCP 服务器文档](docs/mcp.md)。
 
 ---
 
