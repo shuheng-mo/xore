@@ -35,7 +35,8 @@ fn test_cli_version() {
     assert!(output.status.success(), "xore --version should succeed");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("1.0.2"), "Version should be 1.0.2");
+    let expected_version = env!("CARGO_PKG_VERSION");
+    assert!(stdout.contains(expected_version), "Version should be {expected_version}");
 }
 
 #[test]
