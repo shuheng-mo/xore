@@ -412,6 +412,12 @@ fn main() {
 
     // 执行子命令
     if let Err(e) = run_command(&cli) {
+        // BrokenPipe 是正常的管道截断（如 | head），静默退出
+        if let Some(io_err) = e.downcast_ref::<std::io::Error>() {
+            if io_err.kind() == std::io::ErrorKind::BrokenPipe {
+                std::process::exit(0);
+            }
+        }
         print_anyhow_error(&e, cli.verbose, cli.no_color);
         std::process::exit(1);
     }

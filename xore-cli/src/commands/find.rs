@@ -250,7 +250,6 @@ pub fn execute(args: FindArgs) -> Result<()> {
 
     // 记录搜索历史
     if let Some(ref query) = args.query {
-        eprintln!("DEBUG: Recording search for query: {}", query);
         let search_type = if args.semantic { SearchType::Semantic } else { SearchType::FullText };
 
         match record_search_history(
@@ -262,14 +261,12 @@ pub fn execute(args: FindArgs) -> Result<()> {
             args.file_type.clone(),
         ) {
             Ok(_) => {
-                println!("  {} 已记录搜索历史", "✓".dimmed());
+                tracing::debug!("已记录搜索历史: {}", query);
             }
             Err(e) => {
-                eprintln!("DEBUG: Failed to record search history: {}", e);
+                tracing::warn!("记录搜索历史失败: {}", e);
             }
         }
-    } else {
-        eprintln!("DEBUG: No query to record");
     }
 
     Ok(())

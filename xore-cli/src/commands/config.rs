@@ -148,13 +148,10 @@ fn set_config_value(key: &str, value: &str) -> Result<()> {
     println!("{}", format!("设置 {} = {}", key, value).green());
     println!("配置文件路径: {}", config_file.display());
 
-    // 将修改后的值转回 Config 结构并保存
-    // 这是一个简化实现 - 实际需要更复杂的反序列化
-    // 暂时直接保存修改后的 JSON 作为 TOML
-    let toml_string = serde_json::to_string_pretty(&json_value).context("无法序列化配置")?;
-
-    // 写入配置文件
-    fs::write(&config_file, &toml_string).context("无法保存配置文件")?;
+    // 将修改后的 JSON Value 反序列化回 Config，再用 TOML 格式写入
+    let updated_config: Config =
+        serde_json::from_value(json_value).context("无法将修改后的值反序列化为配置结构")?;
+    updated_config.save(&config_file).context("无法保存配置文件")?;
 
     println!("{}", "配置已更新".green());
     Ok(())

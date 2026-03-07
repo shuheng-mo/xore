@@ -31,6 +31,9 @@ pub fn execute(
         run_quality_check(path, &extension)?;
     } else if let Some(sql) = query {
         run_sql_query(path, sql, &extension, output, format)?;
+    } else if let Some(output_path) = output {
+        // 无 SQL 查询但指定了输出路径，执行格式转换
+        run_format_convert(path, &extension, output_path, format)?;
     } else {
         run_data_preview(path, &extension)?;
     }
@@ -130,6 +133,30 @@ fn format_anyvalue(val: &xore_process::AnyValue) -> String {
         AnyValue::Float64(n) => format!("{:.2}", n),
         _ => format!("{:?}", val),
     }
+}
+
+/// 格式转换（无 SQL，直接读取文件并导出为目标格式）
+fn run_format_convert(
+    path: &Path,
+    extension: &str,
+    output_path: &str,
+    format: Option<&str>,
+) -> Result<()> {
+    println!("{} {} {}\n", "🔄".cyan(), "格式转换:".bold(), path.display().to_string().yellow());
+
+    match extension {
+        "csv" | "parquet" => {
+            let parser = DataParser::new();
+            let mut df = parser.read(path).with_context(|| format!("无法读取文件: {:?}", path))?;
+            export_dataframe(&mut df, output_path, format)?;
+        }
+        _ => {
+            println!("{}", format!("格式转换不支持 {} 格式", extension).red());
+            println!("{}", "支持的输入格式: csv, parquet".dimmed());
+        }
+    }
+
+    Ok(())
 }
 
 /// 预览 JSON 文件（保留原有实现）

@@ -449,9 +449,9 @@ fn execute_query(
     }
 
     let mut engine = SqlEngine::new();
-    let table_name = path.file_stem().and_then(|s| s.to_str()).unwrap_or("this");
 
-    engine.register_table(table_name, path)?;
+    // 始终注册为 "this"，与文档和 init 生成的提示词保持一致
+    engine.register_table("this", path)?;
 
     // 执行 SQL
     let result_df = engine.execute(sql)?;
@@ -536,8 +536,16 @@ fn analyze_sql_error(sql: &str) -> Vec<String> {
         ("ODER BY", "ORDER BY", "ODER BY 应该是 ORDER BY"),
     ];
 
+    // 检测是否为独立拼写错误（typo 出现但其对应的正确关键字不存在）
+    fn is_typo(sql: &str, wrong: &str, correct: &str) -> bool {
+        let sql_upper = sql.to_uppercase();
+        let wrong_upper = wrong.to_uppercase();
+        let correct_upper = correct.to_uppercase();
+        sql_upper.contains(&wrong_upper) && !sql_upper.contains(&correct_upper)
+    }
+
     for (wrong, correct, hint) in common_errors {
-        if sql.contains(wrong) {
+        if is_typo(sql, wrong, correct) {
             suggestions.push(format!("原始 SQL: {}", sql.yellow()));
             suggestions.push(format!("         {}", "^".repeat(wrong.len()).red()));
             suggestions.push(format!("错误：{}\n", hint.red()));
@@ -569,6 +577,11 @@ mod tests {
         let suggestions = analyze_sql_error(sql);
         assert!(!suggestions.is_empty());
         assert!(suggestions.iter().any(|s| s.contains("FROM")));
+
+        // 合法的 SELECT 不应被误报为 SELEC 拼写错误
+        let valid_sql = "SELECT * FROM users";
+        let no_suggestions = analyze_sql_error(valid_sql);
+        assert!(no_suggestions.is_empty(), "合法 SELECT 不应触发 SELEC 拼写错误提示");
     }
 
     #[test]
