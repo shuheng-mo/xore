@@ -144,15 +144,19 @@ pub fn is_process_running(pid: u32) -> bool {
     {
         use windows_sys::Win32::Foundation::CloseHandle;
         use windows_sys::Win32::System::Threading::{
-            OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION,
+            GetExitCodeProcess, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION,
         };
         unsafe {
             let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
             if handle.is_null() {
                 return false;
             }
+            let mut exit_code: u32 = 0;
+            let success = GetExitCodeProcess(handle, &mut exit_code);
             CloseHandle(handle);
-            true
+            // STILL_ACTIVE = 259 (0x103)：进程仍在运行
+            // 若进程已退出但句柄未完全释放，exit_code 将是实际退出码
+            success != 0 && exit_code == 259
         }
     }
     #[cfg(not(any(unix, windows)))]
