@@ -31,7 +31,8 @@ pub mod paths;
 
 // 导出主要类型
 pub use config::{
-    Config, ConfigError, EnvConfig, ExcludeConfig, PathsConfig, SearchConfig, UiConfig,
+    Config, ConfigError, EnvConfig, ExcludeConfig, OutputConfig, PathsConfig, SearchConfig,
+    UiConfig,
 };
 pub use env::{get_config, get_paths, init, EnvOverride};
 pub use paths::{PathError, XorePaths};

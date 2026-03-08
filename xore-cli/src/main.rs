@@ -117,6 +117,14 @@ enum Commands {
         /// 清除搜索历史
         #[arg(long)]
         clear_history: bool,
+
+        /// 输出格式: raw (默认), json, agent-json, agent-md
+        #[arg(long, short = 'o')]
+        output: Option<String>,
+
+        /// 限制输出 token 数量
+        #[arg(long)]
+        max_tokens: Option<usize>,
     },
 
     /// 处理数据
@@ -205,6 +213,10 @@ enum AgentCommands {
         /// 目标模型 (gpt-4, claude, ollama, deepseek)
         #[arg(long, default_value = "gpt-4")]
         model: String,
+
+        /// 输出格式: mcp (默认), openai, langchain, openapi
+        #[arg(long, default_value = "mcp")]
+        format: String,
     },
 
     /// 获取数据结构（不读全文）
@@ -276,8 +288,11 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
     match &cli.command {
         Commands::Agent { subcommand } => {
             let agent_args = match subcommand {
-                AgentCommands::Init { model } => agent::AgentArgs {
-                    subcommand: agent::AgentSubcommand::Init { model: model.clone() },
+                AgentCommands::Init { model, format } => agent::AgentArgs {
+                    subcommand: agent::AgentSubcommand::Init {
+                        model: model.clone(),
+                        format: format.clone(),
+                    },
                 },
                 AgentCommands::Schema { file, histogram, json, minify } => agent::AgentArgs {
                     subcommand: agent::AgentSubcommand::Schema {
@@ -332,6 +347,8 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
             history,
             recommend,
             clear_history,
+            output,
+            max_tokens,
         } => {
             find::execute(find::FindArgs {
                 query: query.clone(),
@@ -352,6 +369,8 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
                 history: *history,
                 recommend: *recommend,
                 clear_history: *clear_history,
+                output: output.clone(),
+                max_tokens: *max_tokens,
             })?;
         }
         Commands::Process { file, query, quality_check, output, format } => {

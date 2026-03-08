@@ -181,6 +181,38 @@ impl Default for UiConfig {
     }
 }
 
+/// 输出配置 - Token 节省可视化
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OutputConfig {
+    /// 是否显示 Token 节省信息
+    #[serde(default = "default_true")]
+    pub show_savings: bool,
+    /// 节省信息模式: minimal, detailed, cumulative
+    #[serde(default = "default_savings_mode")]
+    pub savings_mode: String,
+    /// 货币单位: auto, usd, cny
+    #[serde(default = "default_currency")]
+    pub currency: String,
+}
+
+fn default_savings_mode() -> String {
+    "minimal".to_string()
+}
+
+fn default_currency() -> String {
+    "auto".to_string()
+}
+
+impl Default for OutputConfig {
+    fn default() -> Self {
+        Self {
+            show_savings: true,
+            savings_mode: "minimal".to_string(),
+            currency: "auto".to_string(),
+        }
+    }
+}
+
 /// XORE 全局配置（极简设计）
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Config {
@@ -199,6 +231,9 @@ pub struct Config {
     /// 界面配置
     #[serde(default)]
     pub ui: UiConfig,
+    /// 输出配置
+    #[serde(default)]
+    pub output: OutputConfig,
 }
 
 impl Config {

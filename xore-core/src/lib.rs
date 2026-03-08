@@ -6,6 +6,7 @@ pub mod config;
 pub mod error;
 pub mod history;
 pub mod logging;
+pub mod output;
 pub mod recommendation;
 pub mod types;
 
@@ -18,6 +19,9 @@ pub use history::{
     get_default_history_path, HistoryStore, SearchHistoryEntry, SearchStats, SearchType,
 };
 pub use logging::{LogConfig, LogLevel};
+pub use output::{
+    get_total_savings, reset_total_savings, OutputFormatter, OutputMode, TokenSavings,
+};
 pub use recommendation::{
     format_time_ago, Recommendation, RecommendationEngine, RecommendationType,
 };

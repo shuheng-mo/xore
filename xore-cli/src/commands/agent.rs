@@ -17,7 +17,7 @@ pub struct AgentArgs {
 
 /// Agent 子命令枚举
 pub enum AgentSubcommand {
-    Init { model: String },
+    Init { model: String, format: String },
     Schema { file: String, histogram: bool, json: bool, minify: bool },
     Sample { file: String, n: usize, strategy: SampleStrategy, json: bool },
     Query { file: String, sql: String, format: String, minify: bool, limit: Option<usize> },
@@ -50,7 +50,7 @@ impl std::str::FromStr for SampleStrategy {
 /// 执行 Agent 命令
 pub fn execute(args: AgentArgs) -> Result<()> {
     match args.subcommand {
-        AgentSubcommand::Init { model } => execute_init(&model),
+        AgentSubcommand::Init { model, format } => execute_init(&model, &format),
         AgentSubcommand::Schema { file, histogram, json, minify } => {
             execute_schema(&file, histogram, json, minify)
         }
@@ -65,10 +65,129 @@ pub fn execute(args: AgentArgs) -> Result<()> {
 }
 
 /// 执行 init 命令
-fn execute_init(model: &str) -> Result<()> {
-    let template = get_prompt_template(model)?;
-    println!("{}", template);
+fn execute_init(model: &str, format: &str) -> Result<()> {
+    match format.to_lowercase().as_str() {
+        "openai" => {
+            let schema = get_openai_tools_schema();
+            println!("{}", serde_json::to_string_pretty(&schema)?);
+        }
+        "langchain" => {
+            let code = get_langchain_tool_code(model);
+            println!("{}", code);
+        }
+        "openapi" => {
+            let spec = get_openapi_spec();
+            println!("{}", serde_json::to_string_pretty(&spec)?);
+        }
+        _ => {
+            let template = get_prompt_template(model)?;
+            println!("{}", template);
+        }
+    }
     Ok(())
+}
+
+/// 获取 OpenAI Tools Schema
+fn get_openai_tools_schema() -> serde_json::Value {
+    json!({
+        "type": "function",
+        "function": {
+            "name": "xore",
+            "description": "高性能本地文件搜索与数据处理工具，可降低90%+ Token消耗",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "command": {
+                        "type": "string",
+                        "enum": ["find", "process", "agent"],
+                        "description": "要执行的命令"
+                    },
+                    "query": {
+                        "type": "string",
+                        "description": "搜索查询字符串"
+                    },
+                    "path": {
+                        "type": "string",
+                        "description": "搜索路径，默认为当前目录"
+                    },
+                    "file_type": {
+                        "type": "string",
+                        "description": "文件类型过滤"
+                    },
+                    "sql": {
+                        "type": "string",
+                        "description": "SQL 查询语句"
+                    },
+                    "file": {
+                        "type": "string",
+                        "description": "数据文件路径"
+                    }
+                },
+                "required": ["command"]
+            }
+        }
+    })
+}
+
+/// 获取 LangChain Tool 代码
+fn get_langchain_tool_code(model: &str) -> String {
+    let code = r#"# XORE LangChain Tool
+from langchain.tools import Tool
+from langchain.pydantic_v1 import BaseModel, Field
+from typing import Optional
+import subprocess
+
+class XoreInput(BaseModel):
+    command: str
+    query: Optional[str] = None
+    path: str = "."
+    file_type: Optional[str] = None
+    sql: Optional[str] = None
+    file: Optional[str] = None
+
+def run_xore(command: str, query: Optional[str] = None, path: str = ".",
+             file_type: Optional[str] = None, sql: Optional[str] = None,
+             file: Optional[str] = None) -> str:
+    cmd = ["xore", command]
+    if query: cmd.extend(["--query", query])
+    if path: cmd.extend(["--path", path])
+    if file_type: cmd.extend(["--type", file_type])
+    if sql: cmd.extend(["--sql", sql])
+    if file: cmd.append(file)
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    return result.stdout if result.returncode == 0 else result.stderr
+
+xore_tool = Tool(
+    name="xore",
+    func=run_xore,
+    description="高性能本地文件搜索与数据处理工具",
+    args_schema=XoreInput
+)
+"#;
+    format!("{}\n# Target model: {}", code, model)
+}
+
+/// 获取 OpenAPI Spec
+fn get_openapi_spec() -> serde_json::Value {
+    json!({
+        "openapi": "3.0.0",
+        "info": {
+            "title": "XORE API",
+            "description": "高性能本地文件搜索与数据处理工具",
+            "version": "1.1.0"
+        },
+        "paths": {
+            "/find": {
+                "get": {
+                    "summary": "文件搜索",
+                    "parameters": [
+                        {"name": "query", "in": "query", "schema": {"type": "string"}},
+                        {"name": "path", "in": "query", "schema": {"type": "string", "default": "."}}
+                    ]
+                }
+            }
+        }
+    })
 }
 
 /// 获取 Prompt 模板
