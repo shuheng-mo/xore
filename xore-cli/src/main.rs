@@ -117,6 +117,14 @@ enum Commands {
         /// 清除搜索历史
         #[arg(long)]
         clear_history: bool,
+
+        /// 输出格式: raw (默认), json, agent-json, agent-md
+        #[arg(long, short = 'o')]
+        output: Option<String>,
+
+        /// 限制输出 token 数量
+        #[arg(long)]
+        max_tokens: Option<usize>,
     },
 
     /// 处理数据
@@ -205,6 +213,10 @@ enum AgentCommands {
         /// 目标模型 (gpt-4, claude, ollama, deepseek)
         #[arg(long, default_value = "gpt-4")]
         model: String,
+
+        /// 输出格式: mcp (默认), openai, langchain, openapi
+        #[arg(long, default_value = "mcp")]
+        format: String,
     },
 
     /// 获取数据结构（不读全文）
@@ -223,6 +235,10 @@ enum AgentCommands {
         /// 压缩 JSON（无空格）
         #[arg(long)]
         minify: bool,
+
+        /// 注入当前会话上下文到输出
+        #[arg(long)]
+        with_context: bool,
     },
 
     /// 智能采样数据
@@ -241,6 +257,10 @@ enum AgentCommands {
         /// JSON 格式输出
         #[arg(long)]
         json: bool,
+
+        /// 注入当前会话上下文到输出
+        #[arg(long)]
+        with_context: bool,
     },
 
     /// 执行 SQL 查询
@@ -262,12 +282,61 @@ enum AgentCommands {
         /// 返回行数限制
         #[arg(long)]
         limit: Option<usize>,
+
+        /// 注入当前会话上下文到输出
+        #[arg(long)]
+        with_context: bool,
     },
 
     /// SQL 错误分析
     Explain {
         /// SQL 语句
         sql: String,
+    },
+
+    /// 会话上下文管理
+    Context {
+        #[command(subcommand)]
+        subcommand: ContextCommands,
+    },
+}
+
+#[derive(Subcommand)]
+enum ContextCommands {
+    /// 获取会话摘要
+    Get {
+        /// 摘要级别: short | detailed
+        #[arg(long, default_value = "short")]
+        level: String,
+
+        /// 会话 ID（默认 "default"）
+        #[arg(long, default_value = "default")]
+        session_id: String,
+    },
+
+    /// 清空会话记录
+    Clear {
+        /// 会话 ID（默认 "default"）
+        #[arg(long, default_value = "default")]
+        session_id: String,
+    },
+
+    /// 导出会话为 JSON
+    Export {
+        /// 会话 ID（默认 "default"）
+        #[arg(long, default_value = "default")]
+        session_id: String,
+    },
+
+    /// 设置自定义上下文
+    Set {
+        /// 自定义上下文文本
+        #[arg(long)]
+        custom: String,
+
+        /// 会话 ID（默认 "default"）
+        #[arg(long, default_value = "default")]
+        session_id: String,
     },
 }
 
@@ -276,18 +345,24 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
     match &cli.command {
         Commands::Agent { subcommand } => {
             let agent_args = match subcommand {
-                AgentCommands::Init { model } => agent::AgentArgs {
-                    subcommand: agent::AgentSubcommand::Init { model: model.clone() },
-                },
-                AgentCommands::Schema { file, histogram, json, minify } => agent::AgentArgs {
-                    subcommand: agent::AgentSubcommand::Schema {
-                        file: file.clone(),
-                        histogram: *histogram,
-                        json: *json,
-                        minify: *minify,
+                AgentCommands::Init { model, format } => agent::AgentArgs {
+                    subcommand: agent::AgentSubcommand::Init {
+                        model: model.clone(),
+                        format: format.clone(),
                     },
                 },
-                AgentCommands::Sample { file, rows, strategy, json } => {
+                AgentCommands::Schema { file, histogram, json, minify, with_context } => {
+                    agent::AgentArgs {
+                        subcommand: agent::AgentSubcommand::Schema {
+                            file: file.clone(),
+                            histogram: *histogram,
+                            json: *json,
+                            minify: *minify,
+                            with_context: *with_context,
+                        },
+                    }
+                }
+                AgentCommands::Sample { file, rows, strategy, json, with_context } => {
                     let strategy = strategy.parse().unwrap_or(agent::SampleStrategy::Smart);
                     agent::AgentArgs {
                         subcommand: agent::AgentSubcommand::Sample {
@@ -295,21 +370,50 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
                             n: *rows,
                             strategy,
                             json: *json,
+                            with_context: *with_context,
                         },
                     }
                 }
-                AgentCommands::Query { file, sql, format, minify, limit } => agent::AgentArgs {
-                    subcommand: agent::AgentSubcommand::Query {
-                        file: file.clone(),
-                        sql: sql.clone(),
-                        format: format.clone(),
-                        minify: *minify,
-                        limit: *limit,
-                    },
-                },
+                AgentCommands::Query { file, sql, format, minify, limit, with_context } => {
+                    agent::AgentArgs {
+                        subcommand: agent::AgentSubcommand::Query {
+                            file: file.clone(),
+                            sql: sql.clone(),
+                            format: format.clone(),
+                            minify: *minify,
+                            limit: *limit,
+                            with_context: *with_context,
+                        },
+                    }
+                }
                 AgentCommands::Explain { sql } => agent::AgentArgs {
                     subcommand: agent::AgentSubcommand::Explain { sql: sql.clone() },
                 },
+                AgentCommands::Context { subcommand } => {
+                    let ctx_sub = match subcommand {
+                        ContextCommands::Get { level, session_id } => {
+                            agent::ContextSubcommand::Get {
+                                level: level.clone(),
+                                session_id: session_id.clone(),
+                            }
+                        }
+                        ContextCommands::Clear { session_id } => {
+                            agent::ContextSubcommand::Clear { session_id: session_id.clone() }
+                        }
+                        ContextCommands::Export { session_id } => {
+                            agent::ContextSubcommand::Export { session_id: session_id.clone() }
+                        }
+                        ContextCommands::Set { custom, session_id } => {
+                            agent::ContextSubcommand::Set {
+                                custom: custom.clone(),
+                                session_id: session_id.clone(),
+                            }
+                        }
+                    };
+                    agent::AgentArgs {
+                        subcommand: agent::AgentSubcommand::Context { subcommand: ctx_sub },
+                    }
+                }
             };
             agent::execute(agent_args)?;
         }
@@ -332,6 +436,8 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
             history,
             recommend,
             clear_history,
+            output,
+            max_tokens,
         } => {
             find::execute(find::FindArgs {
                 query: query.clone(),
@@ -352,6 +458,8 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
                 history: *history,
                 recommend: *recommend,
                 clear_history: *clear_history,
+                output: output.clone(),
+                max_tokens: *max_tokens,
             })?;
         }
         Commands::Process { file, query, quality_check, output, format } => {

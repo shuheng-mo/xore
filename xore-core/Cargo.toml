@@ -11,6 +11,9 @@ description = "XORE Core - Shared types and utilities"
 # 并发
 num_cpus.workspace = true
 
+# 一次性初始化
+once_cell.workspace = true
+
 # 错误处理
 anyhow.workspace = true
 thiserror.workspace = true

@@ -4831,6 +4831,7 @@ dependencies = [
  "chrono",
  "dirs",
  "num_cpus",
+ "once_cell",
  "serde",
  "serde_json",
  "tempfile",

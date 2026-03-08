@@ -15,7 +15,8 @@ use tracing::{debug, info, warn};
 use xore_ai::{Document, EmbeddingModel, VectorSearcher};
 use xore_config::XorePaths;
 use xore_core::{
-    format_time_ago, get_default_history_path, RecommendationEngine, SearchHistoryEntry, SearchType,
+    format_time_ago, get_default_history_path, RecommendationEngine, SearchHistoryEntry,
+    SearchType, TokenSavings,
 };
 use xore_search::{
     index_exists, FileScanner, FileTypeFilter, IncrementalConfig, IncrementalIndexer, IndexBuilder,
@@ -23,6 +24,7 @@ use xore_search::{
 };
 
 /// Find 命令参数
+#[allow(dead_code)]
 pub struct FindArgs {
     pub query: Option<String>,
     pub path: String,
@@ -42,6 +44,8 @@ pub struct FindArgs {
     pub history: bool,
     pub recommend: bool,
     pub clear_history: bool,
+    pub output: Option<String>,
+    pub max_tokens: Option<usize>,
 }
 
 /// 格式化文件大小为人类可读格式
@@ -247,6 +251,9 @@ pub fn execute(args: FindArgs) -> Result<()> {
     if stats.errors > 0 {
         println!("  {} {} 个文件访问错误", "⚠".yellow(), stats.errors.to_string().yellow());
     }
+
+    // 显示 Token 节省信息
+    print_token_savings(stats.total_size, stats.total_files);
 
     // 记录搜索历史
     if let Some(ref query) = args.query {
@@ -899,4 +906,25 @@ fn record_search_history(
     engine.record_search(entry)?;
     info!("Search history recorded successfully");
     Ok(())
+}
+
+/// 显示 Token 节省信息
+///
+/// # Arguments
+/// * `total_size` - 扫描的文件总大小（字节）
+/// * `file_count` - 扫描的文件数量
+fn print_token_savings(total_size: u64, file_count: usize) {
+    // 计算输出长度（模拟：结果行数 × 平均每行长度）
+    let output_length = file_count.saturating_mul(50);
+
+    // 计算节省信息
+    let savings = TokenSavings::calculate(total_size, output_length);
+
+    // 极简模式显示
+    if savings.saved_tokens > 0 {
+        let output = savings.format_minimal();
+        if !output.is_empty() {
+            println!("\n{}", output);
+        }
+    }
 }
