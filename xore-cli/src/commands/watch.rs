@@ -26,7 +26,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::Result;
 use colored::*;
@@ -142,15 +142,21 @@ pub fn is_process_running(pid: u32) -> bool {
     }
     #[cfg(windows)]
     {
-        use std::os::windows::io::FromRawHandle;
+        use windows_sys::Win32::Foundation::CloseHandle;
+        use windows_sys::Win32::System::Threading::{
+            GetExitCodeProcess, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION,
+        };
         unsafe {
-            let handle =
-                winapi::um::processthreadsapi::OpenProcess(winapi::um::winnt::SYNCHRONIZE, 0, pid);
+            let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
             if handle.is_null() {
                 return false;
             }
-            winapi::um::handleapi::CloseHandle(handle);
-            true
+            let mut exit_code: u32 = 0;
+            let success = GetExitCodeProcess(handle, &mut exit_code);
+            CloseHandle(handle);
+            // STILL_ACTIVE = 259 (0x103)：进程仍在运行
+            // 若进程已退出但句柄未完全释放，exit_code 将是实际退出码
+            success != 0 && exit_code == 259
         }
     }
     #[cfg(not(any(unix, windows)))]
@@ -307,6 +313,7 @@ pub fn stop_daemon_by_path(watch_path: &Path) -> Result<()> {
     // 终止进程
     #[cfg(unix)]
     unsafe {
+        use std::time::Duration;
         libc::kill(pid as libc::pid_t, libc::SIGTERM);
         // 等待最多 3 秒
         for _ in 0..30 {
