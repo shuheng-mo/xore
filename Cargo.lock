@@ -4769,7 +4769,7 @@ checksum = "f17a85883d4e6d00e8a97c586de764dabcc06133f7f1d55dce5cdc070ad7fe59"
 
 [[package]]
 name = "xore"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4800,7 +4800,7 @@ dependencies = [
 
 [[package]]
 name = "xore-ai"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "ndarray 0.15.6",
@@ -4816,7 +4816,7 @@ dependencies = [
 
 [[package]]
 name = "xore-config"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "dirs",
@@ -4829,7 +4829,7 @@ dependencies = [
 
 [[package]]
 name = "xore-core"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -4849,7 +4849,7 @@ dependencies = [
 
 [[package]]
 name = "xore-mcp"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "polars",
@@ -4869,7 +4869,7 @@ dependencies = [
 
 [[package]]
 name = "xore-process"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "criterion",
@@ -4889,7 +4889,7 @@ dependencies = [
 
 [[package]]
 name = "xore-search"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "anyhow",
  "chrono",
