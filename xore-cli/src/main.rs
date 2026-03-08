@@ -10,7 +10,7 @@ use xore_core::{print_anyhow_error, LogConfig};
 mod commands;
 mod ui;
 
-use commands::{agent, benchmark, config, find, process};
+use commands::{abyss, agent, benchmark, config, find, peek, process, watch};
 
 /// XORE - 搜索和数据处理一体化工具
 #[derive(Parser)]
@@ -42,6 +42,12 @@ enum Commands {
     Agent {
         #[command(subcommand)]
         subcommand: AgentCommands,
+    },
+
+    /// 文件监控守护进程管理
+    Watch {
+        #[command(subcommand)]
+        subcommand: WatchCommands,
     },
 
     /// 查找文件（搜索功能）
@@ -105,6 +111,18 @@ enum Commands {
         /// 启用文件监控模式（增量索引）
         #[arg(long, short = 'w')]
         watch: bool,
+
+        /// 以后台守护进程模式启动文件监控（P2.2）
+        #[arg(long)]
+        watch_daemon: bool,
+
+        /// 守护进程监控的包含模式（逗号分隔扩展名，例如 "*.rs,*.toml"）
+        #[arg(long)]
+        watch_include: Option<String>,
+
+        /// 守护进程监控的排除模式（逗号分隔目录，例如 "target,node_modules"）
+        #[arg(long)]
+        watch_exclude: Option<String>,
 
         /// 显示搜索历史
         #[arg(long)]
@@ -299,6 +317,96 @@ enum AgentCommands {
         #[command(subcommand)]
         subcommand: ContextCommands,
     },
+
+    /// 目录扫描与智能预览（P2.1）
+    Peek {
+        /// 目标目录
+        directory: String,
+
+        /// 读取指定文件
+        #[arg(long)]
+        file: Option<String>,
+
+        /// 禁用缓存（强制重新扫描）
+        #[arg(long)]
+        no_cache: bool,
+
+        /// 输出格式：json（默认）| tree | md
+        #[arg(long, short = 'o', default_value = "json")]
+        output: String,
+
+        /// 最大扫描深度（默认 5）
+        #[arg(long, short = 'd')]
+        max_depth: Option<usize>,
+
+        /// 包含模式（逗号分隔的扩展名，例如 "*.rs,*.toml"）
+        #[arg(long)]
+        include: Option<String>,
+
+        /// 排除模式（逗号分隔，例如 "target,node_modules"）
+        #[arg(long)]
+        exclude: Option<String>,
+    },
+
+    /// 全局文件监控守护进程（P2.3）
+    Abyss {
+        /// 启动全局监控
+        #[arg(long)]
+        start: bool,
+
+        /// 强制启动（跳过确认）
+        #[arg(long)]
+        force: bool,
+
+        /// 查看监控状态
+        #[arg(long)]
+        status: bool,
+
+        /// 查看监控日志
+        #[arg(long)]
+        logs: bool,
+
+        /// 日志显示行数（配合 --logs 使用）
+        #[arg(long, default_value = "50")]
+        lines: usize,
+
+        /// 停止全局监控
+        #[arg(long)]
+        stop: bool,
+
+        /// 显示或修改配置
+        #[arg(long)]
+        config: bool,
+
+        /// 排除的目录（逗号分隔，例如 "Downloads,Desktop"）
+        #[arg(long)]
+        exclude: Option<String>,
+
+        /// 仅监控的扩展名（逗号分隔，例如 "rs,toml"）
+        #[arg(long)]
+        include: Option<String>,
+    },
+}
+
+/// Watch 命令（顶级）
+#[derive(Subcommand)]
+enum WatchCommands {
+    /// 查看所有监控守护进程状态
+    Status,
+
+    /// 查看监控日志
+    Logs {
+        /// 显示行数
+        #[arg(long, short = 'n', default_value = "100")]
+        lines: usize,
+    },
+
+    /// 停止守护进程
+    Stop {
+        /// 指定要停止的监控路径（不指定则停止所有）
+        #[arg(long)]
+        path: Option<String>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -414,6 +522,63 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
                         subcommand: agent::AgentSubcommand::Context { subcommand: ctx_sub },
                     }
                 }
+                // P2.1: peek 命令
+                AgentCommands::Peek {
+                    directory,
+                    file,
+                    no_cache,
+                    output,
+                    max_depth,
+                    include,
+                    exclude,
+                } => {
+                    peek::execute(peek::PeekArgs {
+                        directory: directory.clone(),
+                        file: file.clone(),
+                        use_cache: !no_cache,
+                        output: output.clone(),
+                        max_depth: *max_depth,
+                        include: include.clone(),
+                        exclude: exclude.clone(),
+                    })?;
+                    return Ok(());
+                }
+                // P2.3: abyss 命令
+                AgentCommands::Abyss {
+                    start,
+                    force,
+                    status,
+                    logs,
+                    lines,
+                    stop,
+                    config,
+                    exclude,
+                    include,
+                } => {
+                    let action = if *start {
+                        abyss::AbyssAction::Start {
+                            force: *force,
+                            exclude: exclude.clone(),
+                            include: include.clone(),
+                        }
+                    } else if *status {
+                        abyss::AbyssAction::Status
+                    } else if *logs {
+                        abyss::AbyssAction::Logs { lines: *lines }
+                    } else if *stop {
+                        abyss::AbyssAction::Stop
+                    } else if *config {
+                        abyss::AbyssAction::Config {
+                            exclude: exclude.clone(),
+                            include: include.clone(),
+                        }
+                    } else {
+                        // 默认显示状态
+                        abyss::AbyssAction::Status
+                    };
+                    abyss::execute(abyss::AbyssArgs { action })?;
+                    return Ok(());
+                }
             };
             agent::execute(agent_args)?;
         }
@@ -433,6 +598,9 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
             rebuild,
             index_dir,
             watch,
+            watch_daemon,
+            watch_include,
+            watch_exclude,
             history,
             recommend,
             clear_history,
@@ -455,12 +623,30 @@ fn run_command(cli: &Cli) -> anyhow::Result<()> {
                 rebuild: *rebuild,
                 index_dir: index_dir.clone(),
                 watch: *watch,
+                watch_daemon: *watch_daemon,
+                watch_include: watch_include.clone(),
+                watch_exclude: watch_exclude.clone(),
                 history: *history,
                 recommend: *recommend,
                 clear_history: *clear_history,
                 output: output.clone(),
                 max_tokens: *max_tokens,
             })?;
+        }
+        // P2.2: Watch 守护进程管理
+        Commands::Watch { subcommand } => {
+            let watch_args = match subcommand {
+                WatchCommands::Status => {
+                    watch::WatchArgs { subcommand: watch::WatchSubcommand::Status }
+                }
+                WatchCommands::Logs { lines } => {
+                    watch::WatchArgs { subcommand: watch::WatchSubcommand::Logs { lines: *lines } }
+                }
+                WatchCommands::Stop { path } => watch::WatchArgs {
+                    subcommand: watch::WatchSubcommand::Stop { path: path.clone() },
+                },
+            };
+            watch::execute(watch_args)?;
         }
         Commands::Process { file, query, quality_check, output, format } => {
             process::execute(

@@ -238,6 +238,178 @@ impl Default for ContextConfig {
     }
 }
 
+/// Peek 命令配置
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PeekConfig {
+    /// 默认忽略的目录
+    #[serde(default = "default_peek_ignore")]
+    pub default_ignore: Vec<String>,
+    /// 默认最大深度
+    #[serde(default = "default_peek_max_depth")]
+    pub max_depth: usize,
+    /// 缓存 TTL（秒）
+    #[serde(default = "default_peek_cache_ttl")]
+    pub cache_ttl: u64,
+    /// 预览行数：头部
+    #[serde(default = "default_peek_preview_head")]
+    pub preview_head: usize,
+    /// 预览行数：尾部
+    #[serde(default = "default_peek_preview_tail")]
+    pub preview_tail: usize,
+}
+
+fn default_peek_ignore() -> Vec<String> {
+    vec![
+        ".git".to_string(),
+        "node_modules".to_string(),
+        "target".to_string(),
+        "__pycache__".to_string(),
+        "venv".to_string(),
+        ".xore".to_string(),
+    ]
+}
+
+fn default_peek_max_depth() -> usize {
+    5
+}
+
+fn default_peek_cache_ttl() -> u64 {
+    300
+}
+
+fn default_peek_preview_head() -> usize {
+    15
+}
+
+fn default_peek_preview_tail() -> usize {
+    10
+}
+
+impl Default for PeekConfig {
+    fn default() -> Self {
+        Self {
+            default_ignore: default_peek_ignore(),
+            max_depth: 5,
+            cache_ttl: 300,
+            preview_head: 15,
+            preview_tail: 10,
+        }
+    }
+}
+
+/// Watch 守护进程配置
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WatchConfig {
+    /// 默认忽略的目录
+    #[serde(default = "default_watch_ignore")]
+    pub default_ignore: Vec<String>,
+    /// 大文件阈值（字节）
+    #[serde(default = "default_large_file_threshold")]
+    pub large_file_threshold: u64,
+    /// 敏感文件模式
+    #[serde(default = "default_sensitive_patterns")]
+    pub sensitive_patterns: Vec<String>,
+    /// 事件批量大小
+    #[serde(default = "default_batch_size")]
+    pub batch_size: usize,
+    /// 防抖时长（毫秒）
+    #[serde(default = "default_debounce_ms")]
+    pub debounce_ms: u64,
+}
+
+fn default_watch_ignore() -> Vec<String> {
+    vec![".git".to_string(), "node_modules".to_string(), "target".to_string(), ".xore".to_string()]
+}
+
+fn default_large_file_threshold() -> u64 {
+    10 * 1024 * 1024 // 10MB
+}
+
+fn default_sensitive_patterns() -> Vec<String> {
+    vec![
+        "*.key".to_string(),
+        "*.pem".to_string(),
+        "*.env".to_string(),
+        "password".to_string(),
+        "secret".to_string(),
+    ]
+}
+
+fn default_batch_size() -> usize {
+    50
+}
+
+fn default_debounce_ms() -> u64 {
+    500
+}
+
+impl Default for WatchConfig {
+    fn default() -> Self {
+        Self {
+            default_ignore: default_watch_ignore(),
+            large_file_threshold: default_large_file_threshold(),
+            sensitive_patterns: default_sensitive_patterns(),
+            batch_size: default_batch_size(),
+            debounce_ms: default_debounce_ms(),
+        }
+    }
+}
+
+/// Abyss 全局监控配置
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AbyssConfig {
+    /// 排除的目录
+    #[serde(default = "default_abyss_exclude")]
+    pub exclude_dirs: Vec<String>,
+    /// 仅监控指定扩展名（空表示所有）
+    #[serde(default)]
+    pub include_extensions: Vec<String>,
+    /// 大文件阈值（字节）
+    #[serde(default = "default_abyss_large_file_threshold")]
+    pub large_file_threshold: u64,
+    /// 事件队列大小
+    #[serde(default = "default_event_queue_size")]
+    pub event_queue_size: usize,
+    /// 日志保留天数
+    #[serde(default = "default_log_retention_days")]
+    pub log_retention_days: u32,
+}
+
+fn default_abyss_exclude() -> Vec<String> {
+    vec![
+        "Downloads".to_string(),
+        "Desktop".to_string(),
+        "Library".to_string(),
+        "Movies".to_string(),
+        "Music".to_string(),
+        "Pictures".to_string(),
+    ]
+}
+
+fn default_abyss_large_file_threshold() -> u64 {
+    50 * 1024 * 1024 // 50MB
+}
+
+fn default_event_queue_size() -> usize {
+    1000
+}
+
+fn default_log_retention_days() -> u32 {
+    7
+}
+
+impl Default for AbyssConfig {
+    fn default() -> Self {
+        Self {
+            exclude_dirs: default_abyss_exclude(),
+            include_extensions: vec![],
+            large_file_threshold: default_abyss_large_file_threshold(),
+            event_queue_size: default_event_queue_size(),
+            log_retention_days: default_log_retention_days(),
+        }
+    }
+}
+
 /// XORE 全局配置（极简设计）
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Config {
@@ -262,6 +434,15 @@ pub struct Config {
     /// 会话上下文配置
     #[serde(default)]
     pub context: ContextConfig,
+    /// Peek 命令配置
+    #[serde(default)]
+    pub peek: PeekConfig,
+    /// Watch 守护进程配置
+    #[serde(default)]
+    pub watch: WatchConfig,
+    /// Abyss 全局监控配置
+    #[serde(default)]
+    pub abyss: AbyssConfig,
 }
 
 impl Config {

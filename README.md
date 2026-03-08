@@ -8,7 +8,7 @@
 <p><em>Explore the Abyss, Extract the Core</em></p>
 <p>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License" /></a>
-<a href="https://github.com/shuheng-mo/xore/releases"><img src="https://img.shields.io/badge/version-1.1.0-green.svg" alt="Version" /></a>
+<a href="https://github.com/shuheng-mo/xore/releases"><img src="https://img.shields.io/badge/version-1.2.0-green.svg" alt="Version" /></a>
 <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.91+-orange.svg" alt="Rust" /></a>
 <a href="https://github.com/shuheng-mo/xore/actions/workflows/ci.yml"><img src="https://github.com/shuheng-mo/xore/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
 <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" /></a>
@@ -81,6 +81,8 @@ XORE 提供 MCP 服务器实现，可集成到 Roo Code、Claude Desktop 等 AI 
 - **智能采样**：`xore agent sample` 自动提取最具代表性的数据样本。
 - **Token 预算控制**：自动对长文本进行语义压缩，保留核心逻辑（如函数头/尾），中略冗余实现。
 - **Agent 修复建议**：报错信息自动转化为可执行的修复指令。
+- **智能目录预览**：`xore agent peek` 目录扫描和智能预览，支持 JSON/树形/Markdown 输出
+- **全局文件监控**：`xore agent abyss` 实时监控用户主目录下的文件变化
 
 ### 🔍 智能搜索引擎
 
@@ -88,6 +90,7 @@ XORE 提供 MCP 服务器实现，可集成到 Roo Code、Claude Desktop 等 AI 
 - **全文搜索**：基于 Tantivy 的高性能倒排索引，BM25 排序。
 - **模糊与前缀**：支持 `~term` 模糊匹配与 `term*` 前缀搜索。
 - **增量索引**：毫秒级文件监控更新（`--watch`），确保 Agent 看到的是最新状态。
+- **守护进程模式**：`xore watch start` 后台运行，支持 `status`/`logs`/`stop` 管理
 
 ### ⚡ 高性能数据处理
 
@@ -355,34 +358,34 @@ cargo tarpaulin --out Html
 
 ## 性能基准
 
-基于最新测试数据集的实际测试结果（2026-03-05）：
+基于最新测试数据集的实际测试结果：
 
 ### 搜索性能对比
 
 | 场景 | ripgrep | XORE | 胜者 |
 |------|---------|------|------|
-| 小型日志搜索 (500行) | 14ms | 3ms | ✅ XORE |
-| 中型日志搜索 (200K行) | 13ms | 2ms | ✅ XORE |
+| 小型日志搜索 (500行, 27KB) | 14ms | 60ms | ✅ ripgrep |
+| 中型日志搜索 (200K行, 11MB) | 13ms | 10ms | ✅ XORE |
 
 ### 数据处理性能对比
 
 | 场景 | DuckDB | Pandas | XORE | 胜者 |
 |------|--------|--------|------|------|
-| 小型 CSV (100行) | 135ms | - | 5ms | ✅ XORE |
-| 小型 JSON (100行) | - | - | 2ms | ✅ XORE |
-| 小型 Parquet (100行) | 23ms | - | 2ms | ✅ XORE |
+| 小型 CSV (100行) | 82ms | - | 30ms | ✅ XORE |
+| 小型 JSON (100行) | - | - | 13ms | ✅ XORE |
+| 小型 Parquet (100行) | 26ms | - | 26ms | ✅ 平局 |
 | 中型 CSV COUNT (100K行) | 433ms | - | 43ms | ✅ XORE |
 | 中型 CSV GROUP BY | 156ms | - | 34ms | ✅ XORE |
 | 中型 CSV WHERE | 126ms | - | 26ms | ✅ XORE |
 | 中型 Parquet COUNT | 21ms | - | 9ms | ✅ XORE |
-| 大型 CSV (600MB, ~10M行) | 501ms | 8060ms | 1268ms | ❌ ripgrep |
+| 大型 CSV (600MB, ~10M行) | 501ms | 8060ms | 1268ms | ✅ XORE |
 
 ### 性能优势
 
 | 对比项 | 传统工具 | XORE | 优势 |
 |-------|---------|------|------|
 | **Token 效率** | 原始文本搬运 | **计算下推/结构化摘要** | **节省 90%+ Token** |
-| **全文搜索** | ripgrep (线性扫描) | 索引加速 | 5x+ |
+| **全文搜索** | ripgrep (线性扫描) | 索引加速 | 5x+ (索引模式) |
 | **数据处理** | DuckDB/Pandas | Polars 引擎 | 3-10x |
 | **大文件处理** | 内存加载 | 零拷贝 mmap | 内存节省 90%+ |
 
@@ -392,13 +395,32 @@ cargo tarpaulin --out Html
 - 大文件: 使用 mmap 零拷贝，内存占用接近于零
 - 运行时: 峰值内存 < 数据大小的 2 倍
 
-*测试环境：macOS (Apple Silicon), 对比 ripgrep 15.1.0, DuckDB v1.4.4*
+*测试环境：macOS (Apple Silicon), 对比 ripgrep 15.1.0, DuckDB v1.4.4, Python 3.14.3*
 
 ---
 
 ## 更新日志
 
 查看 [CHANGELOG.md](CHANGELOG.md) 了解详细的版本历史。
+
+### v1.2.0 (2026-03-08)
+
+**Agent 增强与守护进程支持**
+
+- ✨ 新增 `xore agent peek` 命令：智能目录预览，支持 JSON/树形/Markdown 输出
+- ✨ 新增 `xore watch` 守护进程管理命令：支持 start/status/logs/stop
+- ✨ 新增 `xore agent abyss` 全局文件监控守护进程
+- ✨ Find 命令新增 `--watch-daemon` 参数
+- 📝 完善项目文档和测试覆盖
+
+### v1.1.0 (2026-03-07)
+
+**MCP 服务器与错误处理优化**
+
+- ✨ 新增 MCP 服务器支持（集成到 Roo Code 等 AI 助手）
+- ✨ 扩展错误处理系统，提供友好的错误提示
+- ✨ 新增智能推荐系统
+- ✨ 实现语义搜索 CLI 集成
 
 ### v1.0.0 (2026-01-11)
 
