@@ -4772,11 +4772,14 @@ name = "xore"
 version = "1.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "colored",
+ "dirs",
  "indicatif",
  "libc",
  "mimalloc",
+ "once_cell",
  "polars",
  "rand 0.8.5",
  "serde",

@@ -5,6 +5,77 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [1.2.0] (2026-03-08)
+
+### Added
+
+- **xore agent peek 命令 - 智能目录预览**
+  - 实现目录扫描和智能预览功能（`xore-cli/src/commands/peek.rs`）
+  - 支持多种输出格式：JSON、树形结构、Markdown
+  - 文件类型智能识别：代码文件、配置文件、文本文件、二进制文件
+  - 代码结构提取：支持 Rust/Python/JavaScript 的函数和类提取
+  - 内存缓存机制：使用 `once_cell::Lazy` 实现带 TTL 的缓存
+  - 配置选项：
+    - `--depth` 目录遍历深度（默认 3 层）
+    - `--format` 输出格式（json/tree/md）
+    - `--include/--exclude` 文件过滤规则
+    - `--code-structure` 提取代码结构
+  - **测试覆盖**：8 个单元测试全部通过
+
+- **Watch 守护进程模式**
+  - 实现后台守护进程管理（`xore-cli/src/commands/watch.rs`）
+  - 支持守护进程启动、停止、状态查看、日志查看
+  - 使用 `setsid()` 实现进程脱离终端
+  - PID 文件管理：`~/.xore/run/watch.pid`
+  - 日志轮转：自动轮转和清理旧日志
+  - 子命令：
+    - `xore watch start` - 启动守护进程
+    - `xore watch stop` - 停止守护进程
+    - `xore watch status` - 查看状态
+    - `xore watch logs` - 查看日志
+  - **测试覆盖**：6 个单元测试全部通过
+
+- **xore agent abyss 全局文件监控**
+  - 实现全局文件监控守护进程（`xore-cli/src/commands/abyss.rs`）
+  - 实时监控用户主目录下的文件变化
+  - 安全机制：
+    - 首次启动显示隐私警告，需要用户确认
+    - 检查系统权限（Linux inotify/macOS FSEvents）
+    - 可配置排除目录和文件类型
+  - 环境变量配置：
+    - `XORE_ABYSS_EXCLUDE` - 排除目录列表
+    - `XORE_ABYSS_INCLUDE` - 包含文件扩展名
+  - 子命令：
+    - `xore agent abyss start` - 启动监控
+    - `xore agent abyss stop` - 停止监控
+    - `xore agent abyss status` - 查看状态
+    - `xore agent abyss logs` - 查看日志
+    - `xore agent abyss stats` - 查看统计信息
+    - `xore agent abyss config` - 查看/更新配置
+  - **测试覆盖**：10 个单元测试全部通过
+
+- **Find 命令增强**
+  - 新增 `--watch-daemon` 参数，支持启动 Watch 守护进程后自动退出
+  - 新增 `--watch-include/--watch-exclude` 参数，配置 Watch 过滤规则
+
+- **配置模块增强**
+  - 新增 `PeekConfig` 配置结构（`xore-config/src/config.rs`）
+  - 新增 `WatchConfig` 配置结构
+  - 新增 `AbyssConfig` 配置结构
+
+### Changed
+
+- **依赖更新**
+  - 添加 `chrono` 0.4（时间处理）
+  - 添加 `dirs` 5.0（目录路径获取）
+  - 添加 `once_cell` 1.19（静态初始化）
+
+### Fixed
+
+- 修复测试并发问题：环境变量测试添加 `ENV_MUTEX` 互斥锁
+- 修复 PID 溢出问题：使用真实进程而非 `u32::MAX`
+- 修复 Clippy 警告：`filter_map` 改为 `map_while`
+
 ## [1.1.0] (2026-03-07)
 
 ### Added
@@ -264,5 +335,6 @@
 - 零拷贝数据管道
 - 并发索引构建
 
+[1.2.0]: https://github.com/shuheng-mo/xore/releases/tag/v1.2.0
 [1.1.0]: https://github.com/shuheng-mo/xore/releases/tag/v1.1.0
 [1.0.0]: https://github.com/shuheng-mo/xore/releases/tag/v1.0.0

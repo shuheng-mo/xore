@@ -8,6 +8,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
+use crate::commands::watch;
+
 use anyhow::{Context, Result};
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -41,6 +43,12 @@ pub struct FindArgs {
     pub rebuild: bool,
     pub index_dir: Option<String>,
     pub watch: bool,
+    /// 以后台守护进程模式启动文件监控（P2.2）
+    pub watch_daemon: bool,
+    /// 守护进程监控的包含模式（逗号分隔扩展名）
+    pub watch_include: Option<String>,
+    /// 守护进程监控的排除模式（逗号分隔目录）
+    pub watch_exclude: Option<String>,
     pub history: bool,
     pub recommend: bool,
     pub clear_history: bool,
@@ -101,6 +109,11 @@ fn get_index_path(args: &FindArgs) -> PathBuf {
 /// 执行查找命令
 pub fn execute(args: FindArgs) -> Result<()> {
     info!("Starting find command with path: {}", args.path);
+
+    // P2.2: --watch-daemon 后台守护进程模式
+    if args.watch_daemon {
+        return execute_watch_daemon(&args);
+    }
 
     // 如果启用了watch模式，必须同时启用index模式
     if args.watch && !args.index {
@@ -927,4 +940,61 @@ fn print_token_savings(total_size: u64, file_count: usize) {
             println!("\n{}", output);
         }
     }
+}
+
+/// P2.2: 执行 Watch 后台守护进程模式
+///
+/// 以后台方式启动文件监控，不阻塞当前终端会话。
+/// 守护进程 PID 保存至 `~/.xore/cache/watch/<path-hash>.pid`，
+/// 日志输出到 `~/.xore/cache/watch/<path-hash>.log`。
+fn execute_watch_daemon(args: &FindArgs) -> Result<()> {
+    let watch_path = PathBuf::from(&args.path);
+
+    // 规范化路径（转为绝对路径）
+    let watch_path = if watch_path.is_absolute() {
+        watch_path
+    } else {
+        std::env::current_dir()?.join(watch_path)
+    };
+
+    let include_patterns: Vec<String> = args
+        .watch_include
+        .as_deref()
+        .unwrap_or("")
+        .split(',')
+        .filter(|s| !s.is_empty())
+        .map(String::from)
+        .collect();
+
+    let exclude_patterns: Vec<String> = args
+        .watch_exclude
+        .as_deref()
+        .unwrap_or("")
+        .split(',')
+        .filter(|s| !s.is_empty())
+        .map(String::from)
+        .collect();
+
+    // 启动守护进程
+    println!("{} 正在启动后台文件监控守护进程...", "🔄".cyan());
+    println!("   监控路径: {}", watch_path.display().to_string().cyan());
+
+    let pid = watch::start_daemon(&watch_path, include_patterns, exclude_patterns)?;
+
+    println!("{} 后台监控已启动！", "✅".green());
+    println!("   PID:    {}", pid.to_string().yellow());
+    println!("   路径:   {}", watch_path.display().to_string().cyan());
+
+    if let Ok(log_file) = watch::get_log_file(&watch_path) {
+        println!("   日志:   {}", log_file.display().to_string().dimmed());
+    }
+
+    println!();
+    println!(
+        "提示：使用 {} 查看监控状态，{} 停止监控",
+        "xore watch status".cyan(),
+        "xore watch stop".yellow()
+    );
+
+    Ok(())
 }

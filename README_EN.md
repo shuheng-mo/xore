@@ -8,7 +8,7 @@
 <p><em>Explore the Abyss, Extract the Core</em></p>
 <p>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue.svg" alt="License" /></a>
-<a href="https://github.com/shuheng-mo/xore/releases"><img src="https://img.shields.io/badge/version-1.1.0-green.svg" alt="Version" /></a>
+<a href="https://github.com/shuheng-mo/xore/releases"><img src="https://img.shields.io/badge/version-1.2.0-green.svg" alt="Version" /></a>
 <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.91+-orange.svg" alt="Rust" /></a>
 <a href="https://github.com/shuheng-mo/xore/actions/workflows/ci.yml"><img src="https://github.com/shuheng-mo/xore/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
 <a href="CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" /></a>
@@ -81,6 +81,8 @@ XORE provides an MCP server implementation that integrates with AI assistants li
 - **Smart Sampling**: `xore agent sample` automatically extracts the most representative data samples.
 - **Token Budget Control**: Semantically compresses long text, preserving core logic (e.g., function headers) while omitting redundant implementation.
 - **Agent Fix Suggestions**: Automatically transforms error messages into actionable fix instructions.
+- **Smart Directory Preview**: `xore agent peek` - directory scanning with JSON/tree/Markdown output
+- **Global File Monitoring**: `xore agent abyss` - real-time monitoring of user home directory
 
 ### 🔍 Intelligent Search Engine
 
@@ -88,6 +90,7 @@ XORE provides an MCP server implementation that integrates with AI assistants li
 - **Full-text Search**: High-performance inverted index via Tantivy with BM25 ranking.
 - **Fuzzy & Prefix**: Supports `~term` fuzzy matching and `term*` prefix search.
 - **Incremental Indexing**: Millisecond-level file watching (`--watch`) ensures the Agent always sees the latest state.
+- **Daemon Mode**: `xore watch start` runs in background with status/logs/stop management
 
 ### ⚡ High-Performance Data Processing
 
@@ -352,34 +355,34 @@ cargo tarpaulin --out Html
 
 ## Benchmarks
 
-Based on latest test dataset results (2026-03-05):
+Based on latest test dataset results:
 
 ### Search Performance Comparison
 
 | Scenario | ripgrep | XORE | Winner |
 |----------|---------|------|--------|
-| Small log search (500 lines) | 14ms | 3ms | ✅ XORE |
-| Medium log search (200K lines) | 13ms | 2ms | ✅ XORE |
+| Small log search (500 lines, 27KB) | 14ms | 60ms | ✅ ripgrep |
+| Medium log search (200K lines, 11MB) | 13ms | 10ms | ✅ XORE |
 
 ### Data Processing Performance Comparison
 
 | Scenario | DuckDB | Pandas | XORE | Winner |
 |----------|--------|--------|------|--------|
-| Small CSV (100 rows) | 135ms | - | 5ms | ✅ XORE |
-| Small JSON (100 rows) | - | - | 2ms | ✅ XORE |
-| Small Parquet (100 rows) | 23ms | - | 2ms | ✅ XORE |
+| Small CSV (100 rows) | 82ms | - | 30ms | ✅ XORE |
+| Small JSON (100 rows) | - | - | 13ms | ✅ XORE |
+| Small Parquet (100 rows) | 26ms | - | 26ms | ✅ Tie |
 | Medium CSV COUNT (100K rows) | 433ms | - | 43ms | ✅ XORE |
 | Medium CSV GROUP BY | 156ms | - | 34ms | ✅ XORE |
 | Medium CSV WHERE | 126ms | - | 26ms | ✅ XORE |
 | Medium Parquet COUNT | 21ms | - | 9ms | ✅ XORE |
-| Large CSV (600MB, ~10M rows) | 501ms | 8060ms | 1268ms | ❌ ripgrep |
+| Large CSV (600MB, ~10M rows) | 501ms | 8060ms | 1268ms | ✅ XORE |
 
 ### Performance Advantages
 
 | Comparison | Traditional Tools | XORE | Advantage |
 |-----------|-------------------|------|-----------|
 | **Token Efficiency** | Raw text transfer | **Pushdown / Structured Summary** | **90%+ Token savings** |
-| **Full-text search** | ripgrep (linear scan) | Index-accelerated | 5x+ |
+| **Full-text search** | ripgrep (linear scan) | Index-accelerated | 5x+ (indexed mode) |
 | **Data processing** | DuckDB/Pandas | Polars engine | 3-10x |
 | **Large file handling** | Memory loading | Zero-copy mmap | 90%+ memory savings |
 
@@ -389,13 +392,32 @@ Based on latest test dataset results (2026-03-05):
 - Large files: Zero-copy mmap, near-zero memory overhead
 - Runtime: Peak memory < 2× data size
 
-*Test environment: macOS (Apple Silicon), compared with ripgrep 15.1.0, DuckDB v1.4.4*
+*Test environment: macOS (Apple Silicon), compared with ripgrep 15.1.0, DuckDB v1.4.4, Python 3.14.3*
 
 ---
 
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for full history.
+
+### v1.2.0 (2026-03-08)
+
+**Agent Enhancement & Daemon Support**
+
+- ✨ New `xore agent peek` command: Smart directory preview with JSON/tree/Markdown output
+- ✨ New `xore watch` daemon management: start/status/logs/stop
+- ✨ New `xore agent abyss` global file monitoring daemon
+- ✨ Find command new `--watch-daemon` parameter
+- 📝 Improved documentation and test coverage
+
+### v1.1.0 (2026-03-07)
+
+**MCP Server & Error Handling**
+
+- ✨ MCP server support (integrated with Roo Code and other AI assistants)
+- ✨ Enhanced error handling system with user-friendly messages
+- ✨ New intelligent recommendation system
+- ✨ Semantic search CLI integration
 
 ### v1.0.0 (2026-01-11)
 
