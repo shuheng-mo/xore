@@ -18,12 +18,38 @@ pub struct AgentArgs {
 
 /// Agent 子命令枚举
 pub enum AgentSubcommand {
-    Init { model: String, format: String },
-    Schema { file: String, histogram: bool, json: bool, minify: bool, with_context: bool },
-    Sample { file: String, n: usize, strategy: SampleStrategy, json: bool, with_context: bool },
-    Query { file: String, sql: String, format: String, minify: bool, limit: Option<usize>, with_context: bool },
-    Explain { sql: String },
-    Context { subcommand: ContextSubcommand },
+    Init {
+        model: String,
+        format: String,
+    },
+    Schema {
+        file: String,
+        histogram: bool,
+        json: bool,
+        minify: bool,
+        with_context: bool,
+    },
+    Sample {
+        file: String,
+        n: usize,
+        strategy: SampleStrategy,
+        json: bool,
+        with_context: bool,
+    },
+    Query {
+        file: String,
+        sql: String,
+        format: String,
+        minify: bool,
+        limit: Option<usize>,
+        with_context: bool,
+    },
+    Explain {
+        sql: String,
+    },
+    Context {
+        subcommand: ContextSubcommand,
+    },
 }
 
 /// Context 子命令枚举
@@ -434,7 +460,13 @@ XORE 方式：
 }
 
 /// 执行 schema 命令
-fn execute_schema(file: &str, histogram: bool, json_output: bool, minify: bool, with_context: bool) -> Result<()> {
+fn execute_schema(
+    file: &str,
+    histogram: bool,
+    json_output: bool,
+    minify: bool,
+    with_context: bool,
+) -> Result<()> {
     let path = Path::new(file);
 
     if !path.exists() {
@@ -549,7 +581,13 @@ fn print_schema_text(
 }
 
 /// 执行 sample 命令
-fn execute_sample(file: &str, n: usize, strategy: SampleStrategy, json_output: bool, with_context: bool) -> Result<()> {
+fn execute_sample(
+    file: &str,
+    n: usize,
+    strategy: SampleStrategy,
+    json_output: bool,
+    with_context: bool,
+) -> Result<()> {
     let path = Path::new(file);
 
     if !path.exists() {
